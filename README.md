@@ -19,8 +19,6 @@ The project is currently under active development.
   * Gradient descent
 * K-Nearest Neighbors
 
-  * In progress
-
 ## Planned
 
 The framework will (hopefully) include implementations of different classical machine learning approaches, including:
