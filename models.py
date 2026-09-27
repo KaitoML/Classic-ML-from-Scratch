@@ -31,6 +31,9 @@ class LinearRegression(Model):
                 f'\n)')
 
     def train(self, x, y):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
         self._w = np.zeros(x.shape[1])
         self._b = 0
         losses = []
@@ -57,6 +60,9 @@ class LinearRegression(Model):
         return losses
 
     def __call__(self, x):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
         return x @ self._w + self._b
 
 class LogisticRegression(Model):
