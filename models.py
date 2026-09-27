@@ -2,6 +2,7 @@
 # 24.09.2026
 # now it feels sooo much easier...
 import numpy as np
+from collections import Counter
 
 class Model:
     def __repr__(self):
@@ -14,11 +15,13 @@ class Model:
         raise NotImplementedError(f'__call__ method of {self.__class__.__name__} is not defined')
 
 class LinearRegression(Model):
-    def __init__(self, max_iter=1000, lr=1e-3, ridge_coef=0.0, lasso_coef=0.0):
+    def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, ridge_coef=0.0, lasso_coef=0.0):
         self.max_iter = max_iter
         self.ridge_coef = ridge_coef
         self.lasso_coef = lasso_coef
         self.lr = lr
+        self.tol = tol
+        self.early_stopping_patience = early_stopping_patience
         self._w = None
         self._b = None
 
@@ -27,8 +30,10 @@ class LinearRegression(Model):
         return (f'LinearRegression('
                 f'\n    max_iter={self.max_iter},'
                 f'\n    lr={self.lr},'
+                f'\n    tol={self.tol},'
+                f'\n    early_stopping_patience={self.early_stopping_patience},'
                 f'\n    ridge_coef={self.ridge_coef},'
-                f'\n    lasso_coef={self.lasso_coef}'
+                f'\n    lasso_coef={self.lasso_coef},'
                 f'\n    trained={trained}'
                 f'\n)')
 
@@ -39,6 +44,7 @@ class LinearRegression(Model):
         self._w = np.zeros(x.shape[1])
         self._b = 0
         losses = []
+        steps_no_improvement = 0
 
         for _ in range(self.max_iter):
             # forward
@@ -47,6 +53,16 @@ class LinearRegression(Model):
             loss = 1/len(y) * np.sum(errors ** 2)
             loss += self.ridge_coef * np.sum(np.square(self._w))
             loss += self.lasso_coef * np.sum(np.abs(self._w))
+
+            # early stopping
+            if len(losses) > 0 and losses[-1] - loss <= self.tol:
+                steps_no_improvement += 1
+            else:
+                steps_no_improvement = 0
+
+            if steps_no_improvement == self.early_stopping_patience:
+                break
+
             losses.append(loss)
 
             # backward
@@ -68,9 +84,11 @@ class LinearRegression(Model):
         return x @ self._w + self._b
 
 class LogisticRegression(Model):
-    def __init__(self, max_iter=1000, lr=1e-3, threshold=0.5):
+    def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, threshold=0.5):
         self.max_iter = max_iter
         self.lr = lr
+        self.tol = tol
+        self.early_stopping_patience = early_stopping_patience
         self.threshold = threshold
         self._w = None
         self._b = None
@@ -79,8 +97,10 @@ class LogisticRegression(Model):
         trained = self._w is not None
         return (f'LogisticRegression('
                 f'\n    max_iter={self.max_iter},'
-                f'\n    lr={self.lr}'
-                f'\n    threshold={self.threshold}'
+                f'\n    lr={self.lr},'
+                f'\n    tol={self.tol},'
+                f'\n    early_stopping_patience={self.early_stopping_patience},'
+                f'\n    threshold={self.threshold},'
                 f'\n    trained={trained}'
                 f'\n)')
 
@@ -89,16 +109,32 @@ class LogisticRegression(Model):
         return 1 / (1 + np.exp(-z))
 
     def train(self, x, y):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
         self._w = np.zeros(x.shape[1])
         self._b = 0
         losses = []
+        steps_no_improvement = 0
 
         for _ in range(self.max_iter):
             # forward
             z = x @ self._w + self._b
             y_pred = self._sigmoid(z)
+            eps = 1e-12
+            y_pred = np.clip(y_pred, eps, 1 - eps)
             errors = -y * np.log(y_pred) - (1 - y) * np.log(1 - y_pred)
             loss = np.mean(errors)
+
+            # early stopping
+            if len(losses) > 0 and losses[-1] - loss <= self.tol:
+                steps_no_improvement += 1
+            else:
+                steps_no_improvement = 0
+
+            if steps_no_improvement == self.early_stopping_patience:
+                break
+
             losses.append(loss)
 
             # backward
@@ -112,6 +148,9 @@ class LogisticRegression(Model):
         return losses
 
     def __call__(self, x):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
         probs = self._sigmoid(x @ self._w + self._b)
         return (probs >= self.threshold).astype(np.int32)
 
@@ -124,7 +163,7 @@ class KNNClassifier(Model):
     def __repr__(self):
         trained = self._data is not None
         return (f"KNNClassifier("
-                f"\n    n_neighbors={self.n_neighbors}"
+                f"\n    n_neighbors={self.n_neighbors},"
                 f"\n    trained={trained}"
                 f"\n)")
 
@@ -152,9 +191,7 @@ class KNNClassifier(Model):
             n_closest = label_dist[:self.n_neighbors]
 
             # count how many datapoints of each label occurred
-            label_counter = {label: 0 for _, label in n_closest}
-            for dist, label in n_closest:
-                label_counter[int(label)] += 1
+            label_counter = Counter(int(label) for _, label in n_closest)
 
             most_freq_label = max(label_counter, key=label_counter.get)
             y_pred.append(most_freq_label)
