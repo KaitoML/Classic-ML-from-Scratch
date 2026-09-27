@@ -23,11 +23,13 @@ class LinearRegression(Model):
         self._b = None
 
     def __repr__(self):
+        trained = self._w is not None
         return (f'LinearRegression('
                 f'\n    max_iter={self.max_iter},'
                 f'\n    lr={self.lr},'
                 f'\n    ridge_coef={self.ridge_coef},'
                 f'\n    lasso_coef={self.lasso_coef}'
+                f'\n    trained={trained}'
                 f'\n)')
 
     def train(self, x, y):
@@ -74,10 +76,13 @@ class LogisticRegression(Model):
         self._b = None
 
     def __repr__(self):
+        trained = self._w is not None
         return (f'LogisticRegression('
                 f'\n    max_iter={self.max_iter},'
                 f'\n    lr={self.lr}'
-                f'\n    threshold={self.threshold}\n)')
+                f'\n    threshold={self.threshold}'
+                f'\n    trained={trained}'
+                f'\n)')
 
     @staticmethod
     def _sigmoid(z):
@@ -113,10 +118,14 @@ class LogisticRegression(Model):
 class KNNClassifier(Model):
     def __init__(self, n_neighbors=5):
         self.n_neighbors = n_neighbors
+        self._data = None
+        self._labels = None
 
     def __repr__(self):
+        trained = self._data is not None
         return (f"KNNClassifier("
                 f"\n    n_neighbors={self.n_neighbors}"
+                f"\n    trained={trained}"
                 f"\n)")
 
     @staticmethod
