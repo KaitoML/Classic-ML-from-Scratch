@@ -118,28 +118,50 @@ class KNNClassifier(Model):
         return np.sqrt(np.sum((coords1 - coords2) ** 2))
 
     def train(self, x, y):
+        assert self.n_neighbors <= len(x), 'n_neighbors > the number of samples'
+
         self._data = x
         self._labels = y
 
     def __call__(self, x):
-        pass
+        y_pred = []
+
+        for x_i in x:
+            # calculate distances from x_i to every datapoint, with a corresponding label
+            label_dist = sorted(
+                [(self._euclidean_distance(x_i, datapoint), label)
+                for datapoint, label in zip(self._data, self._labels)],
+                key=lambda pair: pair[0]) # tie-breaker for equal distances (so that KNN won't start comparing labels, which might not be digits)
+
+            # take n_closest datapoints with their labels
+            n_closest = label_dist[:self.n_neighbors]
+
+            # count how many datapoints of each label occurred
+            label_counter = {label: 0 for _, label in n_closest}
+            for dist, label in n_closest:
+                label_counter[int(label)] += 1
+
+            most_freq_label = max(label_counter, key=label_counter.get)
+            y_pred.append(most_freq_label)
+
+        y_pred = np.array(y_pred)
+        return y_pred
 
 if __name__ == '__main__':
-    model = LinearRegression(ridge_coef=0.0001)
-
+    model = KNNClassifier(n_neighbors=3)
     x = np.array([
-        [1, 1.2, 1.3],
-        [2.4, 3.5, 2.2]
+        [1, 0, 2],
+        [3, 6, 5],
+        [4, 3, 5],
+        [1, 2, 1],
+        [8, 9, 7]
     ])
 
-    y = np.array([16.7, 34])
+    y = np.array([1, 2, 2, 1, 2])
 
-    losses = model.train(x, y)
-    print(model(x))
-    print(model)
+    x_te = np.array([[2, 0, 1], [6, 7, 6]])
 
-    m2 = KNNClassifier(10)
-    print(m2)
-
-    m3 = LogisticRegression()
-    print(m3)
+    model.train(x, y)
+    y_pred = model(x_te)
+    print(y)
+    print(y_pred)
