@@ -152,22 +152,3 @@ class KNNClassifier(Model):
 
         y_pred = np.array(y_pred)
         return y_pred
-
-if __name__ == '__main__':
-    model = KNNClassifier(n_neighbors=3)
-    x = np.array([
-        [1, 0, 2],
-        [3, 6, 5],
-        [4, 3, 5],
-        [1, 2, 1],
-        [8, 9, 7]
-    ])
-
-    y = np.array([1, 2, 2, 1, 2])
-
-    x_te = np.array([[2, 0, 1], [6, 7, 6]])
-
-    model.train(x, y)
-    y_pred = model(x_te)
-    print(y)
-    print(y_pred)
