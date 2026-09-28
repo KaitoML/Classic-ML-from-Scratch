@@ -4,12 +4,9 @@ def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculates accuracy score
 
-    params:
-        y_true (np.ndarray): true labels
-        y_pred (np.ndarray): predicted labels
-
-    returns:
-        score (float): accuracy score
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: accuracy score
     """
 
     correct = (y_true == y_pred)
@@ -21,12 +18,9 @@ def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculates precision
 
-    params:
-        y_true (np.ndarray): true labels
-        y_pred (np.ndarray): predicted labels
-
-    returns:
-        score (float): precision score
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: precision score
     """
     classes = np.unique(y_true)
     precisions = []
@@ -48,12 +42,9 @@ def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculates recall
 
-    params:
-        y_true (np.ndarray): true labels
-        y_pred (np.ndarray): predicted labels
-
-    returns:
-        score (float): recall score
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: recall score
     """
     classes = np.unique(y_true)
     recalls = []
@@ -72,14 +63,11 @@ def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
-    Calculates f1 score
+    Calculates f1-score
 
-    params:
-        y_true (np.ndarray): true labels
-        y_pred (np.ndarray): predicted labels
-
-    returns:
-        score (float): f1 score
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: f1 score
     """
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)

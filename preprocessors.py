@@ -1,4 +1,5 @@
 import numpy as np
+from models import Model
 
 class Estimator:
     def __repr__(self):
@@ -38,6 +39,32 @@ class MinMaxScaler(Estimator):
 
     def transform(self, data):
         return (data - self.min) / (self.max - self.min + 1e-12)
+
+# ROUGH IDEA:
+class Pipeline:
+    def __init__(self, components):
+        for c in components:
+            assert isinstance(c, (Estimator, Model)), f'{c} <-- is not compatible with Pipeline class'
+
+        self.components = components
+
+    def __repr__(self):
+        return f'Pipeline({self.components})'
+
+    def train(self, data):
+
+        for c in self.components:
+            if isinstance(c, Estimator):
+                data = c.fit_transform(data)
+            else:
+                losses = c.train(data)
+
+    def __call__(self, data):
+        for c in self.components:
+            if isinstance(c, Estimator):
+                data = c.transform(data)
+            else:
+                y_pred = c(data)
 
 if __name__ == '__main__':
     x = np.array([[1, 20, 222, 13],
