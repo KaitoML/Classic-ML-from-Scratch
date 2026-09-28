@@ -1,64 +1,56 @@
 # Classic ML from Scratch
 
-An educational machine learning framework implemented from scratch using Python and NumPy.
+An educational machine learning framework implemented from scratch in pure NumPy. The goal is to understand how classical ML algorithms work internally by building them without relying on high-level libraries such as scikit-learn.
 
-The main goal of this project is to understand how classical machine learning algorithms work internally by implementing them without relying on high-level ML libraries such as scikit-learn.
+The project is under active development.
 
-The project is currently under active development.
+## Features
 
-## Implemented
+- **Models** (`models.py`) — `LinearRegression` (gradient descent with L1/Lasso and L2/Ridge regularization, early stopping), `LogisticRegression` (binary classification), `KNNClassifier`.
+- **Preprocessors** (`preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, and a basic `Pipeline` sketch for chaining preprocessors and models.
+- **Model selection** (`model_selection.py`) — `random_split` (train/test split) and `cv_score` (k-fold cross-validation).
+- **Metrics** (`metrics.py`) — `accuracy`, `precision`, `recall`, `f1`.
 
-* Linear Regression
+## Installation
 
-  * Gradient descent
-  * L1 regularization (Lasso)
-  * L2 regularization (Ridge)
-* Logistic Regression
+```bash
+pip install -r requirements.txt
+```
 
-  * Binary classification
-  * Gradient descent
-* K-Nearest Neighbors
+Requires Python 3.x and NumPy. To run `tests.ipynb` you will also need Jupyter (or an IDE with notebook support).
 
-## Planned
-
-The framework will (hopefully) include implementations of different classical machine learning approaches, including:
-
-* K-Nearest Neighbors
-* Decision Trees
-* Random Forest
-* Naive Bayes
-* Support Vector Machines
-* Clustering algorithms
-* Ensemble methods
-* Additional regression and classification algorithms
-
-The exact scope may change as the project develops.
-
-## Philosophy
-
-This is primarily a learning project. The implementations are intentionally kept relatively simple and transparent rather than optimized for production use.
-
-## Example
+## Usage
 
 ```python
 import numpy as np
-from models import LinearRegression
+from models import LinearRegression, LogisticRegression
+from preprocessors import StandardScaler
+from model_selection import random_split, cv_score
+from metrics import accuracy
 
-X = np.array([
-    [1, 1.2, 1.3],
-    [2.4, 3.5, 2.2]
-])
+# regression example
+X = np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])
+y = np.array([3.0, 5.0, 7.0, 9.0])
 
-y = np.array([16.7, 34])
-
-model = LinearRegression(
-    max_iter=1000,
-    lr=1e-3,
-    ridge_coef=0.0001
-)
-
+model = LinearRegression(max_iter=1000, lr=1e-2, ridge_coef=0.01)
 losses = model.train(X, y)
+predictions = model(X)
 
-print(model(X))
-print(model)
+# classification + cross-validation example
+X_train, X_test, y_train, y_test = random_split(X, y, test_size=0.25, seed=42)
+
+clf = LogisticRegression(lr=0.1)
+scores = cv_score(X, y, model=clf, metric=accuracy, n_folds=3, return_value='all')
+print(scores)
+```
+
+See `tests.ipynb` for more complete examples.
+
+## Motivation
+
+Built as a long-term learning project to deeply understand the mathematical foundations and optimization procedures behind classical machine learning algorithms.
+
+## License
+
+This project is licensed under the MIT License.
 ```
