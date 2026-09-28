@@ -26,7 +26,7 @@ def random_split(x, y, test_size=0.2, seed=42):
 
     return x_train, x_test, y_train, y_test
 
-def cv_score(x, y, model, metric, n_folds=5, return_value='all'):
+def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
     """
     Calculates cross validation scores given data, model and target metric
 
@@ -36,9 +36,17 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all'):
     :param metric: target metric that estimates the quality of the model
     :param n_folds: number of splits made for testing
     :param return_value: defines whether to return all scores or only the average; can be set to either 'all' or 'mean'
+    :param seed: random seed for reproducibility
     :return: scores or their average
     """
     assert return_value in ('all', 'mean'), 'Invalid return value. Can be set to "all" or "mean" only'
+
+    if seed is not None:
+        np.random.seed(seed)
+
+    p = np.random.permutation(len(x))
+    x_p, y_p = x[p], y[p]
+
     scores = []
     samples_per_fold = len(y) // n_folds
 
@@ -46,8 +54,8 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all'):
     y_folds = []
 
     for i in range(n_folds):
-        x_fold = x[i*samples_per_fold : (i+1)*samples_per_fold]
-        y_fold = y[i*samples_per_fold : (i+1)*samples_per_fold]
+        x_fold = x_p[i*samples_per_fold : (i+1)*samples_per_fold]
+        y_fold = y_p[i*samples_per_fold : (i+1)*samples_per_fold]
 
         x_folds.append(x_fold)
         y_folds.append(y_fold)
