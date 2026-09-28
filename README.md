@@ -53,4 +53,3 @@ Built as a long-term learning project to deeply understand the mathematical foun
 ## License
 
 This project is licensed under the MIT License.
-```
