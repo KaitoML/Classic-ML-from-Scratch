@@ -1,7 +1,4 @@
 import numpy as np
-from sympy.codegen.ast import continue_
-
-import metrics
 
 def random_split(x, y, test_size=0.2, seed=42):
     """
