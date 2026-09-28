@@ -32,7 +32,7 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
 
     :param x: input data
     :param y: input labels
-    :param model: model that is being tested on the data
+    :param model that is being tested
     :param metric: target metric that estimates the quality of the model
     :param n_folds: number of splits made for testing
     :param return_value: defines whether to return all scores or only the average; can be set to either 'all' or 'mean'
@@ -40,6 +40,7 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
     :return: scores or their average
     """
     assert return_value in ('all', 'mean'), 'Invalid return value. Can be set to "all" or "mean" only'
+    assert n_folds <= len(y), 'Invalid number of folds: n_folds > num samples'
 
     if seed is not None:
         np.random.seed(seed)
