@@ -1,7 +1,7 @@
 import numpy as np
 from models import Model
 
-class Estimator:
+class Preprocessor:
     def __repr__(self):
         return f'{self.__class__.__name__}()'
 
@@ -16,7 +16,7 @@ class Estimator:
         data = self.transform(data)
         return data
 
-class StandardScaler(Estimator):
+class StandardScaler(Preprocessor):
     def __init__(self):
         self.mu = None
         self.sigma = None
@@ -28,7 +28,7 @@ class StandardScaler(Estimator):
     def transform(self, data):
         return (data - self.mu) / (self.sigma + 1e-12)
 
-class MinMaxScaler(Estimator):
+class MinMaxScaler(Preprocessor):
     def __init__(self):
         self.min = None
         self.max = None
@@ -44,7 +44,7 @@ class MinMaxScaler(Estimator):
 class Pipeline:
     def __init__(self, components):
         for c in components:
-            assert isinstance(c, (Estimator, Model)), f'{c} <-- is not compatible with Pipeline class'
+            assert isinstance(c, (Preprocessor, Model)), f'{c} <-- is not compatible with Pipeline class'
 
         self.components = components
 
@@ -54,14 +54,14 @@ class Pipeline:
     def train(self, data):
 
         for c in self.components:
-            if isinstance(c, Estimator):
+            if isinstance(c, Preprocessor):
                 data = c.fit_transform(data)
             else:
                 losses = c.train(data)
 
     def __call__(self, data):
         for c in self.components:
-            if isinstance(c, Estimator):
+            if isinstance(c, Preprocessor):
                 data = c.transform(data)
             else:
                 y_pred = c(data)
