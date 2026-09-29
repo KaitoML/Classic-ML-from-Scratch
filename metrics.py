@@ -1,5 +1,11 @@
 import numpy as np
 
+def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    rss = np.sum(np.square(y_true - y_pred)) # unexplained variance
+    tss = np.sum(np.square(y_true - np.mean(y_true))) # total variance
+    score = 1 - rss / tss
+    return score
+
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculates accuracy score
