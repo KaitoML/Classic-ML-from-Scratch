@@ -73,16 +73,3 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
         scores.append(float(score))
 
     return scores if return_value == 'all' else np.mean(scores)
-
-if __name__ == '__main__':
-    x = np.array([[1, 1, 1],
-                  [1, 0, 1],
-                  [0, 0, 1]])
-
-    y = np.array([1, 1, 0])
-
-    from models import LogisticRegression
-    from metrics import accuracy
-    model = LogisticRegression()
-    scores = cv_score(x, y, model=model, metric=accuracy, n_folds=3, return_value='all')
-    print(scores)

@@ -1,6 +1,3 @@
-# back to classic, he-he
-# 24.09.2026
-# now it feels sooo much easier...
 import numpy as np
 from collections import Counter
 
