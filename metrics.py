@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
@@ -85,3 +87,24 @@ def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)
     return 2 * p * r / (p + r)
+
+def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    n_classes = max(max(y_true), max(y_pred)) + 1
+    confmat = np.zeros((n_classes, n_classes))
+
+    for true, pred in zip(y_true, y_pred):
+        confmat[true, pred] += 1
+
+    sns.heatmap(confmat,
+                annot=True,
+                cmap="rocket")
+
+    plt.xlabel('Predicted labels')
+    plt.ylabel('True labels')
+    plt.show()
+
+if __name__ == '__main__':
+    y_tr = np.array([1, 0, 1])
+    y_pr = np.array([1, 1, 1])
+
+    print(show_confusion_matrix(y_tr, y_pr))
