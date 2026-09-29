@@ -88,7 +88,14 @@ def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     r = recall(y_true, y_pred)
     return 2 * p * r / (p + r)
 
-def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> None:
+    """
+    Displays confusion matrix
+
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: None
+    """
     n_classes = max(max(y_true), max(y_pred)) + 1
     confmat = np.zeros((n_classes, n_classes))
 
@@ -102,9 +109,3 @@ def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     plt.xlabel('Predicted labels')
     plt.ylabel('True labels')
     plt.show()
-
-if __name__ == '__main__':
-    y_tr = np.array([1, 0, 1])
-    y_pr = np.array([1, 1, 1])
-
-    print(show_confusion_matrix(y_tr, y_pr))
