@@ -40,6 +40,30 @@ class MinMaxScaler(Preprocessor):
     def transform(self, data):
         return (data - self.min) / (self.max - self.min + 1e-12)
 
+class PolynomialFeatures(Preprocessor):
+    def __init__(self, degree=2):
+        self.degree = degree
+        self.features_in = None
+
+    def fit(self, data):
+        if data.ndim == 1:
+            data = np.expand_dims(data, axis=1)
+
+        self.features_in = data.shape[1]
+
+    def transform(self, data):
+        if data.ndim == 1:
+            data = np.expand_dims(data, axis=1)
+
+        assert self.features_in == data.shape[1], f'Dimensionality mismatch: {self.features_in} features on fit, {data.shape[1]} features on transform'
+
+        features = [data]
+        for d in range(2, self.degree + 1):
+            features.append(data ** d)
+
+        data_poly = np.hstack(features)
+        return data_poly
+
 # ROUGH IDEA:
 class Pipeline:
     def __init__(self, components):
@@ -65,20 +89,3 @@ class Pipeline:
                 data = c.transform(data)
             else:
                 y_pred = c(data)
-
-if __name__ == '__main__':
-    x = np.array([[1, 20, 222, 13],
-                  [134, 123, 1, -23]])
-
-    scaler = StandardScaler()
-    print(scaler)
-    x = scaler.fit_transform(x)
-    print(x)
-
-    x = np.array([[1, 20, 222, 13],
-                  [134, 123, 1, -23]])
-
-    scaler = MinMaxScaler()
-    print(scaler)
-    x = scaler.fit_transform(x)
-    print(x)
