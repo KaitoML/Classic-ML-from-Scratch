@@ -63,29 +63,3 @@ class PolynomialFeatures(Preprocessor):
 
         data_poly = np.hstack(features)
         return data_poly
-
-# ROUGH IDEA:
-class Pipeline:
-    def __init__(self, components):
-        for c in components:
-            assert isinstance(c, (Preprocessor, Model)), f'{c} <-- is not compatible with Pipeline class'
-
-        self.components = components
-
-    def __repr__(self):
-        return f'Pipeline({self.components})'
-
-    def train(self, data):
-
-        for c in self.components:
-            if isinstance(c, Preprocessor):
-                data = c.fit_transform(data)
-            else:
-                losses = c.train(data)
-
-    def __call__(self, data):
-        for c in self.components:
-            if isinstance(c, Preprocessor):
-                data = c.transform(data)
-            else:
-                y_pred = c(data)
