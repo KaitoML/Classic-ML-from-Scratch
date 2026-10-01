@@ -86,6 +86,10 @@ def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)
+
+    if (p + r) == 0:
+        return 0.0
+
     return 2 * p * r / (p + r)
 
 def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> None:
