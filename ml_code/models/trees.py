@@ -21,6 +21,12 @@ class DecisionTreeClassifier(Model):
         self.max_depth = max_depth
         self.root = None
 
+    def __repr__(self):
+        return (f'DecisionTreeClassifier('
+                f'\n    max_depth={self.max_depth},'
+                f'\n    trained={self.trained}'
+                f'\n)')
+
     def _build_tree(self, x, y, depth):
 
         # if max depth is reached
@@ -150,18 +156,3 @@ class DecisionTreeClassifier(Model):
             preds.append(pred)
 
         return np.array(preds)
-
-if __name__ == '__main__':
-    x = np.array([[1, 1, 7],
-                  [1, 0, 12],
-                  [0, 1, 18],
-                  [0, 1, 35],
-                  [1, 1, 38],
-                  [1, 0, 50],
-                  [0, 0, 83]])
-
-    y = np.array([0, 0, 1, 1, 1, 0, 0,])
-
-    tree = DecisionTreeClassifier()
-    tree.train(x, y)
-    print(tree(x))

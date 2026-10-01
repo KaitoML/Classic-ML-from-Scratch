@@ -1,6 +1,7 @@
 from .base import Model
 from .linear import LinearRegression, LogisticRegression
 from .neighbors import KNNClassifier
+from .trees import DecisionTreeClassifier
 from .ensembles import (
     VotingClassifier,
     VotingRegressor,
@@ -13,6 +14,7 @@ __all__ = [
     "LinearRegression",
     "LogisticRegression",
     "KNNClassifier",
+    "DecisionTreeClassifier",
     "VotingClassifier",
     "VotingRegressor",
     "BaggingClassifier",
