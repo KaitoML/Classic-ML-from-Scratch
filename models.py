@@ -2,6 +2,13 @@ import numpy as np
 from collections import Counter
 
 class Model:
+    def __init__(self, task):
+        self.task = task
+        if self.task not in ('regression', 'classification'):
+            raise ValueError(f'task of {self.__class__.__name__} must be specified: "regression", "classification".')
+
+        self.trained = False
+
     def __repr__(self):
         raise NotImplementedError(f'__repr__ method of {self.__class__.__name__} is not defined')
 
@@ -11,8 +18,12 @@ class Model:
     def __call__(self, x):
         raise NotImplementedError(f'__call__ method of {self.__class__.__name__} is not defined')
 
+# LINEAR MODELS
+# ---
+
 class LinearRegression(Model):
     def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, ridge_coef=0.0, lasso_coef=0.0):
+        super().__init__(task='regression')
         self.max_iter = max_iter
         self.ridge_coef = ridge_coef
         self.lasso_coef = lasso_coef
@@ -23,7 +34,6 @@ class LinearRegression(Model):
         self._b = None
 
     def __repr__(self):
-        trained = self._w is not None
         return (f'LinearRegression('
                 f'\n    max_iter={self.max_iter},'
                 f'\n    lr={self.lr},'
@@ -31,7 +41,7 @@ class LinearRegression(Model):
                 f'\n    early_stopping_patience={self.early_stopping_patience},'
                 f'\n    ridge_coef={self.ridge_coef},'
                 f'\n    lasso_coef={self.lasso_coef},'
-                f'\n    trained={trained}'
+                f'\n    trained={self.trained}'
                 f'\n)')
 
     def train(self, x, y):
@@ -72,6 +82,7 @@ class LinearRegression(Model):
             self._w -= self.lr * dw
             self._b -= self.lr * db
 
+        self.trained = True
         return losses
 
     def __call__(self, x):
@@ -82,6 +93,7 @@ class LinearRegression(Model):
 
 class LogisticRegression(Model):
     def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, threshold=0.5):
+        super().__init__(task='classification')
         self.max_iter = max_iter
         self.lr = lr
         self.tol = tol
@@ -91,14 +103,13 @@ class LogisticRegression(Model):
         self._b = None
 
     def __repr__(self):
-        trained = self._w is not None
         return (f'LogisticRegression('
                 f'\n    max_iter={self.max_iter},'
                 f'\n    lr={self.lr},'
                 f'\n    tol={self.tol},'
                 f'\n    early_stopping_patience={self.early_stopping_patience},'
                 f'\n    threshold={self.threshold},'
-                f'\n    trained={trained}'
+                f'\n    trained={self.trained}'
                 f'\n)')
 
     @staticmethod
@@ -142,6 +153,7 @@ class LogisticRegression(Model):
             self._w -= self.lr * dw
             self._b -= self.lr * db
 
+        self.trained = True
         return losses
 
     def __call__(self, x):
@@ -151,17 +163,20 @@ class LogisticRegression(Model):
         probs = self._sigmoid(x @ self._w + self._b)
         return (probs >= self.threshold).astype(np.int32)
 
+# NEIGHBORS
+# ---
+
 class KNNClassifier(Model):
     def __init__(self, n_neighbors=5):
+        super().__init__(task='classification')
         self.n_neighbors = n_neighbors
         self._data = None
         self._labels = None
 
     def __repr__(self):
-        trained = self._data is not None
         return (f"KNNClassifier("
                 f"\n    n_neighbors={self.n_neighbors},"
-                f"\n    trained={trained}"
+                f"\n    trained={self.trained}"
                 f"\n)")
 
     @staticmethod
@@ -173,6 +188,8 @@ class KNNClassifier(Model):
 
         self._data = x
         self._labels = y
+
+        self.trained = True
 
     def __call__(self, x):
         y_pred = []
@@ -195,3 +212,101 @@ class KNNClassifier(Model):
 
         y_pred = np.array(y_pred)
         return y_pred
+
+# TREES
+# ---
+# soon
+
+# ENSEMBLES
+# ---
+
+class VotingClassifier(Model):
+    def __init__(self, models):
+        super().__init__(task='classification')
+
+        if not isinstance(models, (list, tuple)):
+            raise TypeError('models must be in format of list or tuple')
+
+        for m in models:
+            if not isinstance(m, Model):
+                raise TypeError('only instances of class Models are supported')
+
+            if m.task != 'classification':
+                raise ValueError('only classification models are supported')
+
+        self.models = list(models)
+
+    def __repr__(self):
+        return (f'VotingClassifier('
+                f'\n    models={[m.__class__.__name__ for m in self.models]},'
+                f'\n    trained={self.trained}'
+                f'\n)')
+
+    def train(self, x, y):
+        for m in self.models:
+            m.train(x, y)
+
+        self.trained = True
+
+    def __call__(self, x):
+        preds = []
+
+        for m in self.models:
+            pred = m(x)
+            preds.append(pred)
+
+        preds = np.vstack(preds)
+
+        maj_voting_preds = []
+
+        for col in preds.T:
+            values, counts = np.unique(col, return_counts=True)
+            most_freq = values[counts.argmax()]
+            maj_voting_preds.append(most_freq)
+
+        return np.array(maj_voting_preds)
+
+class VotingRegressor(Model):
+    def __init__(self, models):
+        super().__init__(task='regression')
+
+        if not isinstance(models, (list, tuple)):
+            raise TypeError('models must be in format of list or tuple')
+
+        for m in models:
+            if not isinstance(m, Model):
+                raise TypeError('only instances of class Models are supported')
+
+            if m.task != 'regression':
+                raise ValueError('only regression models are supported')
+
+        self.models = list(models)
+
+    def __repr__(self):
+        return (f'VotingRegressor('
+                f'\n    models={[m.__class__.__name__ for m in self.models]},'
+                f'\n    trained={self.trained}'
+                f'\n)')
+
+    def train(self, x, y):
+        for m in self.models:
+            m.train(x, y)
+
+        self.trained = True
+
+    def __call__(self, x):
+        preds = []
+
+        for m in self.models:
+            pred = m(x)
+            preds.append(pred)
+
+        preds = np.vstack(preds)
+
+        out = []
+
+        for col in preds.T:
+            mean_pred = np.mean(col)
+            out.append(mean_pred)
+
+        return np.array(out)

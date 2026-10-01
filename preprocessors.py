@@ -1,5 +1,4 @@
 import numpy as np
-from models import Model
 
 class Preprocessor:
     def __repr__(self):
