@@ -1,5 +1,5 @@
-from models import Model
-from preprocessors import Preprocessor
+from .models import Model
+from .preprocessors import Preprocessor
 
 class Pipeline:
     def __init__(self, components: list | tuple):
