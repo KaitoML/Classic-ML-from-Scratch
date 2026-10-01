@@ -4,14 +4,39 @@ An educational machine learning framework implemented from scratch in pure NumPy
 
 The project is under active development.
 
+## Project structure
+
+```text
+├── ml_code/
+│   ├── metrics.py
+│   ├── model_selection.py
+│   ├── pipeline.py
+│   ├── preprocessors.py
+│   ├── utils.py
+│   └── models/
+│       ├── base.py
+│       ├── linear.py
+│       ├── neighbors.py
+│       └── ensembles.py
+├── tests.ipynb
+├── requirements.txt
+├── README.md
+└── LICENSE
+```
+
 ## Features
 
-- **Models** (`models.py`) — `LinearRegression` (gradient descent with L1/Lasso and L2/Ridge regularization, early stopping), `LogisticRegression` (binary classification), `KNNClassifier` (multiclass-capable).
-- **Preprocessors** (`preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`.
-- **Pipeline** (`pipeline.py`) — chain preprocessors and an optional final model in a single object.
-- **Model selection** (`model_selection.py`) — `random_split` (train/test split) and `cv_score` (k-fold cross-validation).
-- **Metrics** (`metrics.py`) — `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`.
-- **Utils** (`utils.py`) — `make_regression` and `make_classification` for generating synthetic datasets.
+- **Models** (`ml_code/models/`)
+  - `LinearRegression` — gradient descent with L1/Lasso and L2/Ridge regularization, early stopping
+  - `LogisticRegression` — binary classification
+  - `KNNClassifier` — multiclass-capable k-nearest neighbors
+  - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
+  - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
+- **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`
+- **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
+- **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation)
+- **Metrics** (`ml_code/metrics.py`) — `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
+- **Utils** (`ml_code/utils.py`) — `make_regression`, `make_classification`
 
 ## Installation
 
@@ -24,13 +49,15 @@ Requires Python 3.x and NumPy. To run `tests.ipynb` you will also need Jupyter (
 ## Usage
 
 ```python
-import numpy as np
-from models import LinearRegression, LogisticRegression, KNNClassifier
-from preprocessors import StandardScaler, PolynomialFeatures
-from pipeline import Pipeline
-from model_selection import random_split, cv_score
-from metrics import accuracy, r_squared
-from utils import make_regression, make_classification
+from ml_code.models import (
+    LinearRegression, LogisticRegression, KNNClassifier,
+    BaggingClassifier, VotingClassifier
+)
+from ml_code.preprocessors import StandardScaler, PolynomialFeatures
+from ml_code.pipeline import Pipeline
+from ml_code.model_selection import random_split, cv_score
+from ml_code.metrics import accuracy, r_squared
+from ml_code.utils import make_regression, make_classification
 
 # regression with polynomial features
 x, y = make_regression(n_samples=500, n_features=3, noise_coef=0.1, seed=42)
@@ -45,19 +72,18 @@ losses = pipe.fit(x_train, y_train)
 y_pred = pipe(x_test)
 print("R²:", r_squared(y_test, y_pred))
 
-# binary classification
+# bagging classifier
 x, y = make_classification(n_samples=1000, n_features=5, n_classes=2, seed=42)
-clf = LogisticRegression(lr=0.1, max_iter=3000)
-scores = cv_score(x, y, model=clf, metric=accuracy, n_folds=5, return_value='mean')
-print("CV accuracy:", scores)
-
-# multiclass with KNN
-x, y = make_classification(n_samples=1000, n_features=10, n_classes=5, seed=42)
 x_train, x_test, y_train, y_test = random_split(x, y, test_size=0.2, seed=42)
 
-knn = KNNClassifier(n_neighbors=5)
-knn.train(x_train, y_train)
-print("Accuracy:", accuracy(y_test, knn(x_test)))
+clf = BaggingClassifier(model=KNNClassifier(n_neighbors=5), n_models=15, samples=0.75, seed=42)
+clf.train(x_train, y_train)
+print("Accuracy:", accuracy(y_test, clf(x_test)))
+
+# voting over different models
+voter = VotingClassifier([LogisticRegression(lr=0.1), KNNClassifier(n_neighbors=3)])
+voter.train(x_train, y_train)
+print("Voting accuracy:", accuracy(y_test, voter(x_test)))
 ```
 
 See `tests.ipynb` for more complete examples.
