@@ -16,15 +16,26 @@ class Node:
         return f'Node({self.feature_idx, self.threshold, self.labels})'
 
 class DecisionTreeClassifier(Model):
-    def __init__(self, max_depth=5):
+    def __init__(self, max_depth=5, max_features='all', random_thresholds=False, seed=None):
         super().__init__(task='classification')
+
+        if max_features not in ('all', 'sqrt'):
+            raise ValueError('max_features can only be "all" or "sqrt". ')
+
+        self.random_thresholds = random_thresholds # for extra-trees
+        self.max_features = max_features
         self.max_depth = max_depth
         self.root = None
+        self.seed = seed
+        self._rng = None
 
     def __repr__(self):
         return (f'DecisionTreeClassifier('
                 f'\n    max_depth={self.max_depth},'
+                f'\n    max_features={self.max_features},'
+                f'\n    random_thresholds={self.random_thresholds},'
                 f'\n    trained={self.trained}'
+                f'\n    seed={self.seed}'
                 f'\n)')
 
     def _build_tree(self, x, y, depth):
@@ -45,14 +56,26 @@ class DecisionTreeClassifier(Model):
             node.leaf = True
             return node
 
-
         candidate_splits = {}  # {feature_idx: (impurity, threshold)}
 
-        for i, feature in enumerate(x.T):
+        # choose random features for RF classifier
+        if self.max_features == 'sqrt':
+            n_features = x.shape[1]
+            target_n_features = int(np.sqrt(n_features))
+            feature_indices = self._rng.choice(x.shape[1], size=target_n_features, replace=False)
+        else:
+            feature_indices = np.arange(x.shape[1])
 
-            if len(np.unique(feature)) == 2:
-                thresholds = [np.mean(feature)]
+        for i in feature_indices:
+            feature = x[:, i]
+            unique_vals = np.unique(feature)
 
+            if len(unique_vals) < 2:
+                continue
+
+            if self.random_thresholds:
+                t = self._rng.uniform(unique_vals.min(), unique_vals.max())
+                thresholds = [t]
             else:
                 thresholds = []
 
@@ -98,6 +121,9 @@ class DecisionTreeClassifier(Model):
                     left) / total_samples_split * impurity_left
                 impurity_vals[t] = weighted_impurity_split
 
+            if not thresholds:
+                continue
+
             t_lowest_imp = min(impurity_vals, key=impurity_vals.get)
             lowest_imp = impurity_vals[t_lowest_imp]
             candidate_splits[i] = (lowest_imp, t_lowest_imp)
@@ -131,6 +157,9 @@ class DecisionTreeClassifier(Model):
         return node
 
     def train(self, x, y):
+        y = np.asarray(y).astype(np.int64)
+        self._rng = np.random.default_rng(seed=self.seed)
+
         if x.ndim == 1:
             x = np.expand_dims(x, axis=1)
 
