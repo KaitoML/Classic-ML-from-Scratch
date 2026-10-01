@@ -7,6 +7,8 @@ from .ensembles import (
     VotingRegressor,
     BaggingClassifier,
     BaggingRegressor,
+    RandomForestClassifier,
+    ExtraTreesClassifier,
 )
 
 __all__ = [
@@ -19,4 +21,6 @@ __all__ = [
     "VotingRegressor",
     "BaggingClassifier",
     "BaggingRegressor",
+    "RandomForestClassifier",
+    "ExtraTreesClassifier",
 ]

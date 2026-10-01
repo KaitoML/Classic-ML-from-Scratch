@@ -42,7 +42,8 @@ class DecisionTreeClassifier(Model):
 
         # if max depth is reached
         if depth >= self.max_depth:
-            prediction = np.bincount(y).argmax()
+            classes, counts = np.unique(y, return_counts=True)
+            prediction = classes[counts.argmax()]
             node = Node(labels=y, prediction=prediction)
             node.leaf = True
             return node
@@ -185,3 +186,7 @@ class DecisionTreeClassifier(Model):
             preds.append(pred)
 
         return np.array(preds)
+
+# SOON
+class DecisionTreeRegressor(Model):
+    pass

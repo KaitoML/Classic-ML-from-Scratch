@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+
+from . import DecisionTreeClassifier
 from .base import Model
 
 class VotingClassifier(Model):
@@ -247,3 +249,37 @@ class BaggingRegressor(Model):
             out.append(mean_pred)
 
         return np.array(out)
+
+class RandomForestClassifier(BaggingClassifier):
+    def __init__(self, n_models=50, max_depth=5, seed=None):
+        super().__init__(model=DecisionTreeClassifier(max_depth=max_depth, max_features='sqrt'),
+                         n_models=n_models,
+                         samples=0.75, seed=seed)
+        self.max_depth = max_depth
+
+    def __repr__(self):
+        return (f'RandomForestClassifier('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    trained={self.trained},'
+                f'\n    seed={self.seed}'
+                f'\n)')
+
+# SOON
+class RandomForestRegressor(BaggingRegressor):
+    pass
+
+class ExtraTreesClassifier(BaggingClassifier):
+    def __init__(self, n_models=50, max_depth=5, seed=None):
+        super().__init__(model=DecisionTreeClassifier(max_depth=max_depth, max_features='sqrt', random_thresholds=True),
+                         n_models=n_models,
+                         samples=0.75, seed=seed)
+        self.max_depth = max_depth
+
+    def __repr__(self):
+        return (f'ExtraTreesClassifier('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    trained={self.trained},'
+                f'\n    seed={self.seed}'
+                f'\n)')
