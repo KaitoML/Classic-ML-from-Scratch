@@ -1,7 +1,6 @@
 import numpy as np
 import copy
-
-from . import DecisionTreeClassifier
+from .trees import DecisionTreeClassifier, DecisionTreeRegressor
 from .base import Model
 
 class VotingClassifier(Model):
@@ -265,9 +264,20 @@ class RandomForestClassifier(BaggingClassifier):
                 f'\n    seed={self.seed}'
                 f'\n)')
 
-# SOON
 class RandomForestRegressor(BaggingRegressor):
-    pass
+    def __init__(self, n_models=50, max_depth=5, seed=None):
+        super().__init__(model=DecisionTreeRegressor(max_depth=max_depth, max_features='sqrt'),
+                         n_models=n_models,
+                         samples=0.75, seed=seed)
+        self.max_depth = max_depth
+
+    def __repr__(self):
+        return (f'RandomForestRegressor('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    trained={self.trained},'
+                f'\n    seed={self.seed}'
+                f'\n)')
 
 class ExtraTreesClassifier(BaggingClassifier):
     def __init__(self, n_models=50, max_depth=5, seed=None):
@@ -278,6 +288,21 @@ class ExtraTreesClassifier(BaggingClassifier):
 
     def __repr__(self):
         return (f'ExtraTreesClassifier('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    trained={self.trained},'
+                f'\n    seed={self.seed}'
+                f'\n)')
+
+class ExtraTreesRegressor(BaggingRegressor):
+    def __init__(self, n_models=50, max_depth=5, seed=None):
+        super().__init__(model=DecisionTreeRegressor(max_depth=max_depth, max_features='sqrt', random_thresholds=True),
+                         n_models=n_models,
+                         samples=0.75, seed=seed)
+        self.max_depth = max_depth
+
+    def __repr__(self):
+        return (f'ExtraTreesRegressor('
                 f'\n    n_models={self.n_models},'
                 f'\n    max_depth={self.max_depth},'
                 f'\n    trained={self.trained},'
