@@ -1,4 +1,6 @@
 import numpy as np
+import copy
+from itertools import product
 
 def random_split(x, y, test_size=0.2, seed=42):
     """
@@ -73,3 +75,66 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
         scores.append(float(score))
 
     return scores if return_value == 'all' else np.mean(scores)
+
+class GridSearchCV:
+    def __init__(self, param_grid, model, metric, folds=3, maximize_metric=True, seed=None):
+        self.param_grid = param_grid
+        self.model = model
+        self.metric = metric
+        self.folds = folds
+        self.maximize_metric = maximize_metric # defines whether greater is better for chosen metric
+        self.seed = seed
+        self.best_model = None
+
+    def __repr__(self):
+        return (f'GridSearch('
+                f'\n    model={self.model.__class__.__name__}'
+                f'\n)')
+
+    def train(self, x, y):
+
+        combinations = [
+            dict(zip(self.param_grid.keys(), values))
+            for values in product(*self.param_grid.values())
+        ]
+
+        model_to_score = [] # [(model, score)]
+
+        for i in range(len(combinations)):
+            c = combinations[i]
+
+            model = copy.deepcopy(self.model)
+            for par, val in c.items():
+                setattr(model, par, val)
+
+            score = cv_score(x, y, model, self.metric, n_folds=self.folds, return_value='mean', seed=self.seed)
+            model_to_score.append((model, score))
+
+        if self.maximize_metric:
+            self.best_model = max(model_to_score, key=lambda x: x[1])[0]
+        else:
+            self.best_model = min(model_to_score, key=lambda x: x[1])[0]
+
+
+if __name__ == '__main__':
+    from utils import make_regression
+    from models import RandomForestRegressor
+    from metrics import r_squared
+
+    x, y = make_regression(n_samples=300, n_features=3, noise_coef=1)
+    x_tr, x_te, y_tr, y_te = random_split(x, y)
+
+    params = {
+        'n_models': [10, 15, 20],
+        'max_depth': [2, 5, 7]
+    }
+    m = RandomForestRegressor()
+
+    grid = GridSearchCV(params, m, r_squared)
+    grid.train(x_tr, y_tr)
+    m = grid.best_model
+    print(m)
+
+    m.train(x_tr, y_tr)
+    y_pred = m(x_te)
+    print(r_squared(y_te, y_pred))
