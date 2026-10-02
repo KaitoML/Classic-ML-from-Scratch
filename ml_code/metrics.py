@@ -2,6 +2,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# REGRESSION METRICS:
+def mse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Calculated mean squared error
+
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: mse score
+    """
+    score = np.mean((y_true - y_pred) ** 2)
+    return score
+
+def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Calculated root mean squared error
+
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: mse score
+    """
+    score = np.sqrt(np.mean((y_true - y_pred) ** 2))
+    return score
+
 def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculated R-squared
@@ -15,6 +38,7 @@ def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     score = 1 - rss / tss
     return score
 
+# CLASSIFICATION METRICS:
 def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculates accuracy score
