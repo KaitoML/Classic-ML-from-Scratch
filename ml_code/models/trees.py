@@ -15,19 +15,64 @@ class Node:
     def __repr__(self):
         return f'Node({self.feature_idx, self.threshold, self.labels})'
 
-class DecisionTreeClassifier(Model):
-    def __init__(self, max_depth=5, max_features='all', random_thresholds=False, seed=None):
-        super().__init__(task='classification')
+class DecisionTree(Model):
+    def __init__(self, task, max_depth=5, max_features='all', random_thresholds=False, seed=None):
 
+        super().__init__(task=task)
         if max_features not in ('all', 'sqrt'):
             raise ValueError('max_features can only be "all" or "sqrt". ')
 
+        self.task = task
         self.random_thresholds = random_thresholds # for extra-trees
         self.max_features = max_features
         self.max_depth = max_depth
         self.root = None
         self.seed = seed
         self._rng = None
+
+    def _build_tree(self, x, y, depth):
+        raise NotImplementedError(f'_build_tree method of {self.__class__.__name__} is not defined')
+
+    def train(self, x, y):
+        if self.task == 'classification':
+            y = np.asarray(y).astype(np.int64)
+
+        self._rng = np.random.default_rng(seed=self.seed)
+
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
+        self.root = self._build_tree(x, y, depth=0)
+        self.trained = True
+
+    def _traverse(self, sample, node):
+        if node.leaf:
+            return node.prediction
+
+        if sample[node.feature_idx] < node.threshold:
+            return self._traverse(sample, node.left)
+        else:
+            return self._traverse(sample, node.right)
+
+    def __call__(self, x):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
+        preds = []
+        for x_i in x:
+            pred = self._traverse(x_i, self.root)
+            preds.append(pred)
+
+        return np.array(preds)
+
+
+class DecisionTreeClassifier(DecisionTree):
+    def __init__(self, max_depth=5, max_features='all', random_thresholds=False, seed=None):
+        super().__init__(task='classification',
+                         max_depth=max_depth,
+                         max_features=max_features,
+                         random_thresholds=random_thresholds,
+                         seed=seed)
 
     def __repr__(self):
         return (f'DecisionTreeClassifier('
@@ -156,37 +201,3 @@ class DecisionTreeClassifier(Model):
         node.right = self._build_tree(right_x, right_y, depth+1)
 
         return node
-
-    def train(self, x, y):
-        y = np.asarray(y).astype(np.int64)
-        self._rng = np.random.default_rng(seed=self.seed)
-
-        if x.ndim == 1:
-            x = np.expand_dims(x, axis=1)
-
-        self.root = self._build_tree(x, y, depth=0)
-        self.trained = True
-
-    def _traverse(self, sample, node):
-        if node.leaf:
-            return node.prediction
-
-        if sample[node.feature_idx] < node.threshold:
-            return self._traverse(sample, node.left)
-        else:
-            return self._traverse(sample, node.right)
-
-    def __call__(self, x):
-        if x.ndim == 1:
-            x = np.expand_dims(x, axis=1)
-
-        preds = []
-        for x_i in x:
-            pred = self._traverse(x_i, self.root)
-            preds.append(pred)
-
-        return np.array(preds)
-
-# SOON
-class DecisionTreeRegressor(Model):
-    pass
