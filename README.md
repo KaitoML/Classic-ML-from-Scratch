@@ -17,7 +17,9 @@ The project is under active development.
 │       ├── base.py
 │       ├── linear.py
 │       ├── neighbors.py
-│       └── ensembles.py
+│       ├── trees.py
+│       ├── ensembles.py
+│       └── __init__.py
 ├── tests.ipynb
 ├── requirements.txt
 ├── README.md
@@ -28,10 +30,13 @@ The project is under active development.
 
 - **Models** (`ml_code/models/`)
   - `LinearRegression` — gradient descent with L1/Lasso and L2/Ridge regularization, early stopping
-  - `LogisticRegression` — binary classification
-  - `KNNClassifier` — multiclass-capable k-nearest neighbors
+  - `LogisticRegression` — binary classification (sigmoid + binary cross-entropy)
+  - `KNNClassifier` — multiclass-capable k-nearest neighbors (Euclidean distance)
+  - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
   - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
   - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
+  - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling
+  - `ExtraTreesClassifier` / `ExtraTreesRegressor` — extremely randomized trees
 - **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation)
@@ -44,14 +49,18 @@ The project is under active development.
 pip install -r requirements.txt
 ```
 
-Requires Python 3.x and NumPy. To run `tests.ipynb` you will also need Jupyter (or an IDE with notebook support). Matplotlib and seaborn are used for plotting the confusion matrix.
+Requires **Python 3.x** and **NumPy**.  
+`matplotlib` and `seaborn` are needed for the confusion-matrix plot.  
+To run `tests.ipynb` you will also need Jupyter (or any IDE with notebook support).
 
 ## Usage
 
 ```python
 from ml_code.models import (
     LinearRegression, LogisticRegression, KNNClassifier,
-    BaggingClassifier, VotingClassifier
+    DecisionTreeClassifier, DecisionTreeRegressor,
+    BaggingClassifier, VotingClassifier,
+    RandomForestClassifier, ExtraTreesClassifier,
 )
 from ml_code.preprocessors import StandardScaler, PolynomialFeatures
 from ml_code.pipeline import Pipeline
@@ -84,6 +93,15 @@ print("Accuracy:", accuracy(y_test, clf(x_test)))
 voter = VotingClassifier([LogisticRegression(lr=0.1), KNNClassifier(n_neighbors=3)])
 voter.train(x_train, y_train)
 print("Voting accuracy:", accuracy(y_test, voter(x_test)))
+
+# random forest / extra trees
+rf = RandomForestClassifier(n_models=30, max_depth=6, seed=42)
+rf.train(x_train, y_train)
+print("RF accuracy:", accuracy(y_test, rf(x_test)))
+
+et = ExtraTreesClassifier(n_models=30, max_depth=6, seed=42)
+et.train(x_train, y_train)
+print("ExtraTrees accuracy:", accuracy(y_test, et(x_test)))
 ```
 
 See `tests.ipynb` for more complete examples.
