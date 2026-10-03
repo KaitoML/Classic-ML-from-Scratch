@@ -39,8 +39,8 @@ The project is under active development.
   - `ExtraTreesClassifier` / `ExtraTreesRegressor` — extremely randomized trees
 - **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
-- **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation)
-- **Metrics** (`ml_code/metrics.py`) — `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
+- **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
+- **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
 - **Utils** (`ml_code/utils.py`) — `make_regression`, `make_classification`
 
 ## Installation
@@ -64,7 +64,7 @@ from ml_code.models import (
 )
 from ml_code.preprocessors import StandardScaler, PolynomialFeatures
 from ml_code.pipeline import Pipeline
-from ml_code.model_selection import random_split, cv_score
+from ml_code.model_selection import random_split, cv_score, GridSearchCV
 from ml_code.metrics import accuracy, r_squared
 from ml_code.utils import make_regression, make_classification
 
@@ -102,6 +102,12 @@ print("RF accuracy:", accuracy(y_test, rf(x_test)))
 et = ExtraTreesClassifier(n_models=30, max_depth=6, seed=42)
 et.train(x_train, y_train)
 print("ExtraTrees accuracy:", accuracy(y_test, et(x_test)))
+
+# grid search
+params = {'n_models': [10, 20], 'max_depth': [3, 5]}
+grid = GridSearchCV(params, RandomForestClassifier(), accuracy, folds=3)
+grid.train(x_train, y_train)
+best = grid.best_model
 ```
 
 See `tests.ipynb` for more complete examples.
@@ -109,6 +115,11 @@ See `tests.ipynb` for more complete examples.
 ## Motivation
 
 Built as a long-term learning project to deeply understand the mathematical foundations and optimization procedures behind classical machine learning algorithms.
+
+## Notes
+
+Core algorithm implementations (models, training logic, ensembles, trees, preprocessors, pipeline, model selection, metrics, and data utilities) were written independently.  
+Documentation (docstrings) and parts of the README were prepared with AI assistance.
 
 ## License
 
