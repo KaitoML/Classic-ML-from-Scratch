@@ -2,6 +2,18 @@ import numpy as np
 from .base import Model
 
 class LinearRegression(Model):
+    """
+    Linear regression model trained with gradient descent.
+    Supports L1 (Lasso) and L2 (Ridge) regularization and early stopping.
+
+    :param max_iter: maximum number of gradient descent iterations
+    :param lr: learning rate
+    :param tol: minimum loss improvement to reset early stopping counter
+    :param early_stopping_patience: number of iterations without improvement before stopping
+    :param ridge_coef: L2 regularization coefficient
+    :param lasso_coef: L1 regularization coefficient
+    """
+
     def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, ridge_coef=0.0, lasso_coef=0.0):
         super().__init__(task='regression')
         self.max_iter = max_iter
@@ -25,6 +37,13 @@ class LinearRegression(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains the linear regression model using gradient descent.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target values of shape (n_samples,)
+        :return: list of loss values for each iteration
+        """
         if x.ndim == 1:
             x = np.expand_dims(x, axis=1)
 
@@ -66,6 +85,12 @@ class LinearRegression(Model):
         return losses
 
     def __call__(self, x):
+        """
+        Makes predictions with the trained model.
+
+        :param x: input features of shape (n_samples, n_features) or (n_features,)
+        :return: predicted values
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -75,6 +100,17 @@ class LinearRegression(Model):
         return x @ self._w + self._b
 
 class LogisticRegression(Model):
+    """
+    Binary logistic regression model trained with gradient descent.
+    Uses sigmoid activation and binary cross-entropy loss.
+
+    :param max_iter: maximum number of gradient descent iterations
+    :param lr: learning rate
+    :param tol: minimum loss improvement to reset early stopping counter
+    :param early_stopping_patience: number of iterations without improvement before stopping
+    :param threshold: decision threshold for converting probabilities to class labels
+    """
+
     def __init__(self, max_iter=1000, lr=1e-3, tol=1e-6, early_stopping_patience=10, threshold=0.5):
         super().__init__(task='classification')
         self.max_iter = max_iter
@@ -100,6 +136,13 @@ class LogisticRegression(Model):
         return 1 / (1 + np.exp(-z))
 
     def train(self, x, y):
+        """
+        Trains the logistic regression model using gradient descent.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: binary target labels of shape (n_samples,)
+        :return: list of loss values for each iteration
+        """
         if x.ndim == 1:
             x = np.expand_dims(x, axis=1)
 
@@ -140,6 +183,12 @@ class LogisticRegression(Model):
         return losses
 
     def __call__(self, x):
+        """
+        Makes class predictions with the trained model.
+
+        :param x: input features of shape (n_samples, n_features) or (n_features,)
+        :return: predicted class labels (0 or 1)
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
