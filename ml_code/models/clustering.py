@@ -1,5 +1,5 @@
 import numpy as np
-from base import Model
+from .base import Model
 
 class Centroid:
     def __init__(self, x, boundaries, seed=None):
@@ -30,20 +30,12 @@ class Centroid:
 
         self.coords = np.mean(self.data, axis=0)
 
-    @staticmethod
-    def _euclidean_distance(coords1, coords2):
-        return np.sqrt(np.sum((coords1 - coords2) ** 2))
-
-    def estimate_mean_distance(self):
+    def estimate_inertia(self):
         if len(self.data) == 0:
             return np.inf
 
-        dists = []
-        for x_i in self.data:
-            dist = self._euclidean_distance(self.coords, x_i)
-            dists.append(dist)
-
-        return np.mean(dists)
+        data = np.asarray(self.data)
+        return np.sum((data - self.coords) ** 2)
 
 class KMeans(Model):
     def __init__(self, n_clusters=5, n_inits=10, max_iter=100, tol=1e-6, seed=None):
@@ -79,7 +71,7 @@ class KMeans(Model):
             boundaries[i] = (np.min(feature), np.max(feature))
 
         best_centroids = None
-        lowest_mean_dist = np.inf
+        lowest_total_inertia = np.inf
         for init in range(self.n_inits):
 
             # initialize centroids
@@ -106,21 +98,22 @@ class KMeans(Model):
 
                     closest_centroid.assign(x_i)
 
+                shift = 0
                 for c in centroids:
-                    coords_0 = c.coords
+                    old = c.coords.copy()
                     c.move()
-                    coords_1 = c.coords
+                    shift += np.linalg.norm(c.coords - old)
 
-                    if np.sum(coords_1 - coords_0) <= self.tol:
-                        break
+                if shift <= self.tol:
+                    break
 
-            mean_dists = []
+            total_inertia = 0
             for c in centroids:
-                mean_dist = c.estimate_mean_distance()
-                mean_dists.append(mean_dist)
+                inertia = c.estimate_inertia()
+                total_inertia += inertia
 
-            if np.sum(mean_dists) < lowest_mean_dist:
-                lowest_mean_dist = np.sum(mean_dists)
+            if total_inertia < lowest_total_inertia:
+                lowest_total_inertia = total_inertia
                 best_centroids = centroids
 
         self._centroids = best_centroids
@@ -146,6 +139,8 @@ class KMeans(Model):
 
 
 if __name__ == '__main__':
+    # TODO:
+    #   Add KMeans tests to tests.ipynb
     x = np.array([[1, 5],
                   [1.3, 5.4],
                   [1.1, 6],
