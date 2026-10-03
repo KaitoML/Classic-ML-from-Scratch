@@ -133,6 +133,12 @@ class LogisticRegression(Model):
 
     @staticmethod
     def _sigmoid(z):
+        """
+        Applies the sigmoid function.
+
+        :param z: input values
+        :return: sigmoid-transformed values
+        """
         return 1 / (1 + np.exp(-z))
 
     def train(self, x, y):

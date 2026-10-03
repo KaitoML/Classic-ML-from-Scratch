@@ -2,6 +2,15 @@ import numpy as np
 from .base import Model
 
 class Node:
+    """
+    Single node of a decision tree.
+
+    :param feature_idx: index of the feature used for splitting
+    :param threshold: threshold value for the split
+    :param labels: labels that reached this node during training
+    :param prediction: prediction value if the node is a leaf
+    """
+
     def __init__(self, feature_idx=None, threshold=None, labels=None, prediction=None):
         self.feature_idx = feature_idx
         self.threshold = threshold
@@ -16,6 +25,17 @@ class Node:
         return f'Node({self.feature_idx, self.threshold, self.labels})'
 
 class DecisionTree(Model):
+    """
+    Base CART-style decision tree.
+    Used as a parent for classifier and regressor variants.
+
+    :param task: "classification" or "regression"
+    :param max_depth: maximum depth of the tree
+    :param max_features: number of features to consider at each split ("all" or "sqrt")
+    :param random_thresholds: if True, thresholds are sampled randomly (ExtraTrees-style)
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, task, max_depth=5, max_features='all', random_thresholds=False, seed=None):
         super().__init__(task=task)
         if max_features not in ('all', 'sqrt'):
@@ -30,12 +50,32 @@ class DecisionTree(Model):
         self._rng = None
 
     def _criterion(self, y):
+        """
+        Calculates impurity or variance for a set of labels.
+
+        :param y: labels in the current node
+        :return: criterion value
+        """
         raise NotImplementedError(f'_criterion for {self.__class__.__name__} is not defined')
 
     def _prediction(self, y):
+        """
+        Calculates the prediction for a leaf node.
+
+        :param y: labels in the leaf
+        :return: leaf prediction
+        """
         raise NotImplementedError(f'_prediction for {self.__class__.__name__} is not defined')
 
     def _build_tree(self, x, y, depth):
+        """
+        Recursively builds the decision tree.
+
+        :param x: input features for the current node
+        :param y: labels for the current node
+        :param depth: current depth of the node
+        :return: root Node of the (sub)tree
+        """
 
         # if max depth is reached
         if depth >= self.max_depth:
@@ -146,6 +186,13 @@ class DecisionTree(Model):
         return node
 
     def train(self, x, y):
+        """
+        Builds the decision tree on the given data.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target labels of shape (n_samples,)
+        :return: None
+        """
         if self.task == 'classification':
             y = np.asarray(y).astype(np.int64)
 
@@ -158,6 +205,13 @@ class DecisionTree(Model):
         self.trained = True
 
     def _traverse(self, sample, node):
+        """
+        Traverses the tree to obtain a prediction for a single sample.
+
+        :param sample: single input sample
+        :param node: current node in the tree
+        :return: prediction from the reached leaf
+        """
         if node.leaf:
             return node.prediction
 
@@ -167,6 +221,12 @@ class DecisionTree(Model):
             return self._traverse(sample, node.right)
 
     def __call__(self, x):
+        """
+        Makes predictions by traversing the trained tree.
+
+        :param x: input features of shape (n_samples, n_features) or (n_features,)
+        :return: predicted values
+        """
         if x.ndim == 1:
             x = np.expand_dims(x, axis=1)
 
@@ -178,6 +238,15 @@ class DecisionTree(Model):
         return np.array(preds)
 
 class DecisionTreeClassifier(DecisionTree):
+    """
+    Decision tree classifier using Gini impurity (CART).
+
+    :param max_depth: maximum depth of the tree
+    :param max_features: number of features to consider at each split ("all" or "sqrt")
+    :param random_thresholds: if True, thresholds are sampled randomly (ExtraTrees-style)
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, max_depth=5, max_features='all', random_thresholds=False, seed=None):
         super().__init__(task='classification',
                          max_depth=max_depth,
@@ -195,15 +264,36 @@ class DecisionTreeClassifier(DecisionTree):
                 f'\n)')
 
     def _criterion(self, y):
+        """
+        Calculates Gini impurity.
+
+        :param y: labels in the current node
+        :return: Gini impurity
+        """
         _, counts = np.unique(y, return_counts=True)
         probabilities = counts / len(y)
         return 1 - np.sum(probabilities ** 2)
 
     def _prediction(self, y):
+        """
+        Returns the majority class in the leaf.
+
+        :param y: labels in the leaf
+        :return: majority class label
+        """
         classes, counts = np.unique(y, return_counts=True)
         return classes[counts.argmax()]
 
 class DecisionTreeRegressor(DecisionTree):
+    """
+    Decision tree regressor using mean squared error (CART).
+
+    :param max_depth: maximum depth of the tree
+    :param max_features: number of features to consider at each split ("all" or "sqrt")
+    :param random_thresholds: if True, thresholds are sampled randomly (ExtraTrees-style)
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, max_depth=5, max_features='all', random_thresholds=False, seed=None):
         super().__init__(task='regression',
                          max_depth=max_depth,
@@ -221,8 +311,20 @@ class DecisionTreeRegressor(DecisionTree):
                 f'\n)')
 
     def _criterion(self, y):
+        """
+        Calculates mean squared error (variance) of the labels.
+
+        :param y: labels in the current node
+        :return: mean squared error
+        """
         mean = np.mean(y)
         return np.mean((y - mean) ** 2)
 
     def _prediction(self, y):
+        """
+        Returns the mean of the labels in the leaf.
+
+        :param y: labels in the leaf
+        :return: mean value
+        """
         return np.mean(y)

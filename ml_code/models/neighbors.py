@@ -3,6 +3,13 @@ from collections import Counter
 from .base import Model
 
 class KNNClassifier(Model):
+    """
+    K-Nearest Neighbors classifier using Euclidean distance.
+    Supports multiclass classification.
+
+    :param n_neighbors: number of nearest neighbors to use for prediction
+    """
+
     def __init__(self, n_neighbors=5):
         super().__init__(task='classification')
         self.n_neighbors = n_neighbors
@@ -17,9 +24,23 @@ class KNNClassifier(Model):
 
     @staticmethod
     def _euclidean_distance(coords1, coords2):
+        """
+        Calculates Euclidean distance between two points.
+
+        :param coords1: first point
+        :param coords2: second point
+        :return: Euclidean distance
+        """
         return np.sqrt(np.sum((coords1 - coords2) ** 2))
 
     def train(self, x, y):
+        """
+        Stores the training data for later nearest-neighbor search.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target labels of shape (n_samples,)
+        :return: None
+        """
         assert self.n_neighbors <= len(x), 'n_neighbors > the number of samples'
 
         self._data = x
@@ -28,6 +49,12 @@ class KNNClassifier(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts class labels by majority vote among the k nearest neighbors.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: predicted class labels
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 

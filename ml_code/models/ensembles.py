@@ -4,6 +4,13 @@ from .trees import DecisionTreeClassifier, DecisionTreeRegressor
 from .base import Model
 
 class VotingClassifier(Model):
+    """
+    Hard-voting ensemble of classification models.
+    Each model votes for a class; the majority class is chosen.
+
+    :param models: list or tuple of classification Model instances
+    """
+
     def __init__(self, models):
         super().__init__(task='classification')
 
@@ -26,12 +33,25 @@ class VotingClassifier(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains all base models on the same data.
+
+        :param x: input features
+        :param y: target labels
+        :return: None
+        """
         for m in self.models:
             m.train(x, y)
 
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts class labels by majority vote.
+
+        :param x: input features
+        :return: predicted class labels
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -53,6 +73,13 @@ class VotingClassifier(Model):
         return np.array(maj_voting_preds)
 
 class VotingRegressor(Model):
+    """
+    Averaging ensemble of regression models.
+    Final prediction is the mean of all base model predictions.
+
+    :param models: list or tuple of regression Model instances
+    """
+
     def __init__(self, models):
         super().__init__(task='regression')
 
@@ -75,12 +102,25 @@ class VotingRegressor(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains all base models on the same data.
+
+        :param x: input features
+        :param y: target values
+        :return: None
+        """
         for m in self.models:
             m.train(x, y)
 
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts values by averaging base model outputs.
+
+        :param x: input features
+        :return: predicted values
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -101,6 +141,16 @@ class VotingRegressor(Model):
         return np.array(out)
 
 class BaggingClassifier(Model):
+    """
+    Bootstrap aggregating (bagging) ensemble for classification.
+    Trains multiple copies of a base model on bootstrap samples and aggregates by majority vote.
+
+    :param model: base classification Model instance to be cloned and trained
+    :param n_models: number of base models in the ensemble
+    :param samples: fraction (0-1] or absolute number of samples for each bootstrap draw
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, model, n_models=10, samples=1.0, seed=None):
         super().__init__(task='classification')
 
@@ -129,6 +179,14 @@ class BaggingClassifier(Model):
                 f'\n)')
 
     def _bootstrap_samples(self, x, y, rng):
+        """
+        Draws a bootstrap sample from the data.
+
+        :param x: input features
+        :param y: target labels
+        :param rng: numpy random generator
+        :return: bootstrapped features and labels
+        """
         if 0 < self.samples <= 1:
             n_samples = int(len(y) * self.samples)
         elif 1 < self.samples <= len(y):
@@ -143,6 +201,13 @@ class BaggingClassifier(Model):
         return x_b, y_b
 
     def train(self, x, y):
+        """
+        Trains the bagging ensemble on bootstrap samples.
+
+        :param x: input features
+        :param y: target labels
+        :return: None
+        """
         self._trained_models = []
         rng = np.random.default_rng(self.seed)
 
@@ -155,6 +220,12 @@ class BaggingClassifier(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts class labels by majority vote over the ensemble.
+
+        :param x: input features
+        :return: predicted class labels
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -176,6 +247,16 @@ class BaggingClassifier(Model):
         return np.array(maj_voting_preds)
 
 class BaggingRegressor(Model):
+    """
+    Bootstrap aggregating (bagging) ensemble for regression.
+    Trains multiple copies of a base model on bootstrap samples and averages predictions.
+
+    :param model: base regression Model instance to be cloned and trained
+    :param n_models: number of base models in the ensemble
+    :param samples: fraction (0-1] or absolute number of samples for each bootstrap draw
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, model, n_models=10, samples=1.0, seed=None):
         super().__init__(task='regression')
 
@@ -204,6 +285,14 @@ class BaggingRegressor(Model):
                 f'\n)')
 
     def _bootstrap_samples(self, x, y, rng):
+        """
+        Draws a bootstrap sample from the data.
+
+        :param x: input features
+        :param y: target values
+        :param rng: numpy random generator
+        :return: bootstrapped features and targets
+        """
         if 0 < self.samples <= 1:
             n_samples = int(len(y) * self.samples)
         elif 1 < self.samples <= len(y):
@@ -218,6 +307,13 @@ class BaggingRegressor(Model):
         return x_b, y_b
 
     def train(self, x, y):
+        """
+        Trains the bagging ensemble on bootstrap samples.
+
+        :param x: input features
+        :param y: target values
+        :return: None
+        """
         self._trained_models = []
         rng = np.random.default_rng(self.seed)
 
@@ -230,6 +326,12 @@ class BaggingRegressor(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts values by averaging the ensemble outputs.
+
+        :param x: input features
+        :return: predicted values
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -250,6 +352,14 @@ class BaggingRegressor(Model):
         return np.array(out)
 
 class RandomForestClassifier(BaggingClassifier):
+    """
+    Random Forest classifier: bagging of decision trees with feature subsampling.
+
+    :param n_models: number of trees in the forest
+    :param max_depth: maximum depth of each tree
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=5, seed=None):
         super().__init__(model=DecisionTreeClassifier(max_depth=max_depth, max_features='sqrt'),
                          n_models=n_models,
@@ -265,6 +375,14 @@ class RandomForestClassifier(BaggingClassifier):
                 f'\n)')
 
 class RandomForestRegressor(BaggingRegressor):
+    """
+    Random Forest regressor: bagging of decision trees with feature subsampling.
+
+    :param n_models: number of trees in the forest
+    :param max_depth: maximum depth of each tree
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=5, seed=None):
         super().__init__(model=DecisionTreeRegressor(max_depth=max_depth, max_features='sqrt'),
                          n_models=n_models,
@@ -280,6 +398,15 @@ class RandomForestRegressor(BaggingRegressor):
                 f'\n)')
 
 class ExtraTreesClassifier(BaggingClassifier):
+    """
+    Extremely Randomized Trees classifier.
+    Like Random Forest, but thresholds are chosen randomly.
+
+    :param n_models: number of trees in the ensemble
+    :param max_depth: maximum depth of each tree
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=5, seed=None):
         super().__init__(model=DecisionTreeClassifier(max_depth=max_depth, max_features='sqrt', random_thresholds=True),
                          n_models=n_models,
@@ -295,6 +422,15 @@ class ExtraTreesClassifier(BaggingClassifier):
                 f'\n)')
 
 class ExtraTreesRegressor(BaggingRegressor):
+    """
+    Extremely Randomized Trees regressor.
+    Like Random Forest, but thresholds are chosen randomly.
+
+    :param n_models: number of trees in the ensemble
+    :param max_depth: maximum depth of each tree
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=5, seed=None):
         super().__init__(model=DecisionTreeRegressor(max_depth=max_depth, max_features='sqrt', random_thresholds=True),
                          n_models=n_models,
