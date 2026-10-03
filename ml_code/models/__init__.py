@@ -2,6 +2,7 @@ from .base import Model
 from .linear import LinearRegression, LogisticRegression
 from .neighbors import KNNClassifier
 from .trees import DecisionTreeClassifier, DecisionTreeRegressor
+from .bayes import GaussianNaiveBayes
 from .ensembles import (
     VotingClassifier,
     VotingRegressor,
@@ -20,6 +21,7 @@ __all__ = [
     "KNNClassifier",
     "DecisionTreeClassifier",
     "DecisionTreeRegressor",
+    "GaussianNaiveBayes",
     "VotingClassifier",
     "VotingRegressor",
     "BaggingClassifier",
