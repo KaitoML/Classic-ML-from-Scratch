@@ -7,8 +7,8 @@ class Model:
 
     def __init__(self, task):
         self.task = task
-        if self.task not in ('regression', 'classification'):
-            raise ValueError(f'task of {self.__class__.__name__} must be specified: "regression", "classification".')
+        if self.task not in ('regression', 'classification', 'clustering'):
+            raise ValueError(f'task of {self.__class__.__name__} must be specified: "regression", "classification", "clustering".')
 
         self.trained = False
 
