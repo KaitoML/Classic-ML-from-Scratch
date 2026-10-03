@@ -2,6 +2,14 @@ import numpy as np
 from .base import Model
 
 class Centroid:
+    """
+    Helper class representing a single cluster centroid in K-Means.
+
+    :param x: input data used only to determine the number of features
+    :param boundaries: dict mapping feature index to (min, max) for random init
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, x, boundaries, seed=None):
         self._rng = np.random.default_rng(seed)
         self.data = []
@@ -19,18 +27,40 @@ class Centroid:
                 f'\n)')
 
     def assign(self, x_i):
+        """
+        Assigns a data point to this centroid.
+
+        :param x_i: single input sample
+        :return: None
+        """
         self.data.append(x_i)
 
     def reset(self):
+        """
+        Clears all currently assigned data points.
+
+        :return: None
+        """
         self.data = []
 
     def move(self):
+        """
+        Moves the centroid to the mean of its assigned points.
+        Does nothing if the cluster is empty.
+
+        :return: None
+        """
         if len(self.data) == 0:
             return
 
         self.coords = np.mean(self.data, axis=0)
 
     def estimate_inertia(self):
+        """
+        Calculates within-cluster sum of squared distances (inertia).
+
+        :return: inertia value, or inf if the cluster is empty
+        """
         if len(self.data) == 0:
             return np.inf
 
@@ -38,6 +68,17 @@ class Centroid:
         return np.sum((data - self.coords) ** 2)
 
 class KMeans(Model):
+    """
+    K-Means clustering algorithm.
+    Performs multiple random initializations and keeps the result with the lowest inertia.
+
+    :param n_clusters: number of clusters
+    :param n_inits: number of random initializations
+    :param max_iter: maximum number of assign/update iterations per initialization
+    :param tol: convergence tolerance on total centroid shift
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_clusters=5, n_inits=10, max_iter=100, tol=1e-6, seed=None):
         super().__init__(task='clustering')
         self.n_clusters = n_clusters
@@ -62,9 +103,24 @@ class KMeans(Model):
 
     @staticmethod
     def _euclidean_distance(coords1, coords2):
+        """
+        Calculates Euclidean distance between two points.
+
+        :param coords1: first point
+        :param coords2: second point
+        :return: Euclidean distance
+        """
         return np.sqrt(np.sum((coords1 - coords2) ** 2))
 
     def train(self, x, y=None):
+        """
+        Fits K-Means clustering on the input data.
+        y is ignored (unsupervised algorithm).
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: ignored, present for interface compatibility
+        :return: None
+        """
 
         boundaries = {}  # {feature_idx: (min, max)}
         for i, feature in enumerate(x.T):
@@ -127,6 +183,12 @@ class KMeans(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Assigns each sample to the nearest centroid.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: cluster labels of shape (n_samples,)
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 

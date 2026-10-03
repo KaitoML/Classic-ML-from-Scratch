@@ -18,6 +18,8 @@ The project is under active development.
 │       ├── linear.py
 │       ├── neighbors.py
 │       ├── trees.py
+│       ├── bayes.py
+│       ├── clustering.py
 │       ├── ensembles.py
 │       └── __init__.py
 ├── tests.ipynb
@@ -32,11 +34,13 @@ The project is under active development.
   - `LinearRegression` — gradient descent with L1/Lasso and L2/Ridge regularization, early stopping
   - `LogisticRegression` — binary classification (sigmoid + binary cross-entropy)
   - `KNNClassifier` — multiclass-capable k-nearest neighbors (Euclidean distance)
+  - `GaussianNaiveBayes` — Gaussian Naive Bayes classifier
   - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
   - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
   - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
   - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling
   - `ExtraTreesClassifier` / `ExtraTreesRegressor` — extremely randomized trees
+  - `KMeans` — K-Means clustering with multiple initializations and inertia-based selection
 - **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
@@ -58,6 +62,7 @@ To run `tests.ipynb` you will also need Jupyter (or any IDE with notebook suppor
 ```python
 from ml_code.models import (
     LinearRegression, LogisticRegression, KNNClassifier,
+    GaussianNaiveBayes, KMeans,
     DecisionTreeClassifier, DecisionTreeRegressor,
     BaggingClassifier, VotingClassifier,
     RandomForestClassifier, ExtraTreesClassifier,
@@ -88,6 +93,16 @@ x_train, x_test, y_train, y_test = random_split(x, y, test_size=0.2, seed=42)
 clf = BaggingClassifier(model=KNNClassifier(n_neighbors=5), n_models=15, samples=0.75, seed=42)
 clf.train(x_train, y_train)
 print("Accuracy:", accuracy(y_test, clf(x_test)))
+
+# naive bayes
+gnb = GaussianNaiveBayes()
+gnb.train(x_train, y_train)
+print("GNB accuracy:", accuracy(y_test, gnb(x_test)))
+
+# k-means clustering
+kmeans = KMeans(n_clusters=3, n_inits=10, max_iter=100, seed=42)
+kmeans.train(x_train)
+print("Cluster labels:", kmeans.labels[:10])
 
 # voting over different models
 voter = VotingClassifier([LogisticRegression(lr=0.1), KNNClassifier(n_neighbors=3)])
