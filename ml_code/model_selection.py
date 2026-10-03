@@ -4,11 +4,11 @@ from itertools import product
 
 def random_split(x, y, test_size=0.2, seed=42):
     """
-    Performs a single random split into two sets of data: training and testing/validation
+    Performs a single random split into training and test sets.
 
     :param x: input data
     :param y: input labels
-    :param test_size: the proportion of data that should go to the testing set
+    :param test_size: proportion of data that goes to the test set
     :param seed: random seed for reproducibility
     :return: x_train, x_test, y_train, y_test
     """
@@ -30,14 +30,14 @@ def random_split(x, y, test_size=0.2, seed=42):
 
 def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
     """
-    Calculates cross validation scores given data, model and target metric
+    Calculates k-fold cross-validation scores for a given model and metric.
 
     :param x: input data
     :param y: input labels
-    :param model that is being tested
-    :param metric: target metric that estimates the quality of the model
-    :param n_folds: number of splits made for testing
-    :param return_value: defines whether to return all scores or only the average; can be set to either 'all' or 'mean'
+    :param model: model being evaluated
+    :param metric: metric function that estimates model quality
+    :param n_folds: number of folds
+    :param return_value: "all" to return list of scores, "mean" to return average
     :param seed: random seed for reproducibility
     :return: scores or their average
     """
@@ -77,6 +77,18 @@ def cv_score(x, y, model, metric, n_folds=5, return_value='all', seed=None):
     return scores if return_value == 'all' else np.mean(scores)
 
 class GridSearchCV:
+    """
+    Exhaustive search over a parameter grid with cross-validation.
+    Selects the best hyperparameter combination according to the given metric.
+
+    :param param_grid: dictionary mapping parameter names to lists of values
+    :param model: base model instance to be cloned and configured
+    :param metric: metric function used for evaluation
+    :param folds: number of cross-validation folds
+    :param maximize_metric: if True, higher metric is better; if False, lower is better
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, param_grid, model, metric, folds=3, maximize_metric=True, seed=None):
         self.param_grid = param_grid
         self.model = model
@@ -92,6 +104,13 @@ class GridSearchCV:
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Runs grid search with cross-validation and stores the best model.
+
+        :param x: input features
+        :param y: target labels
+        :return: None
+        """
 
         combinations = [
             dict(zip(self.param_grid.keys(), values))

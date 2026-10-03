@@ -2,6 +2,13 @@ from .models import Model
 from .preprocessors import Preprocessor
 
 class Pipeline:
+    """
+    Chains preprocessors and an optional final model into a single workflow.
+    Preprocessors are fitted/transformed in order; the model (if present) must be last.
+
+    :param components: list or tuple of Preprocessor and/or Model instances
+    """
+
     def __init__(self, components: list | tuple):
         if not isinstance(components, (list, tuple)):
             raise TypeError('components must be list or tuple')
@@ -23,12 +30,11 @@ class Pipeline:
 
     def fit(self, x, y=None):
         """
-        Fit all preprocessors and (optionally) train the final model.
-        Returns losses if the final component is a model, otherwise returns None
+        Fits all preprocessors and (optionally) trains the final model.
 
         :param x: input data
-        :param y: labels
-        :return: losses | None
+        :param y: labels (required if the pipeline ends with a model)
+        :return: loss history if the final component is a model, otherwise None
         """
         losses = None
 
@@ -49,10 +55,10 @@ class Pipeline:
 
     def __call__(self, x):
         """
-        Transform data through all preprocessors and (optionally) get predictions if the pipeline includes a model
+        Transforms data through all preprocessors and (optionally) returns model predictions.
 
         :param x: input data
-        :return: predictions | transformed data
+        :return: predictions if a model is present, otherwise transformed data
         """
 
         for c in self.components:
