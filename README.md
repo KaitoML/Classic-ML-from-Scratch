@@ -20,6 +20,7 @@ The project is under active development.
 │       ├── trees.py
 │       ├── bayes.py
 │       ├── clustering.py
+│       ├── boosting.py
 │       ├── ensembles.py
 │       └── __init__.py
 ├── tests.ipynb
@@ -36,6 +37,7 @@ The project is under active development.
   - `KNNClassifier` — multiclass-capable k-nearest neighbors (Euclidean distance)
   - `GaussianNaiveBayes` — Gaussian Naive Bayes classifier
   - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
+  - `AdaBoostClassifier` — AdaBoost with decision stumps and weighted voting
   - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
   - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
   - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling
@@ -60,72 +62,27 @@ To run `tests.ipynb` you will also need Jupyter (or any IDE with notebook suppor
 ## Usage
 
 ```python
-from ml_code.models import (
-    LinearRegression, LogisticRegression, KNNClassifier,
-    GaussianNaiveBayes, KMeans,
-    DecisionTreeClassifier, DecisionTreeRegressor,
-    BaggingClassifier, VotingClassifier,
-    RandomForestClassifier, ExtraTreesClassifier,
-)
-from ml_code.preprocessors import StandardScaler, PolynomialFeatures
+from ml_code.models import LinearRegression
+from ml_code.preprocessors import StandardScaler
 from ml_code.pipeline import Pipeline
-from ml_code.model_selection import random_split, cv_score, GridSearchCV
-from ml_code.metrics import accuracy, r_squared
-from ml_code.utils import make_regression, make_classification
+from ml_code.model_selection import random_split
+from ml_code.metrics import r_squared
+from ml_code.utils import make_regression
 
-# regression with polynomial features
-x, y = make_regression(n_samples=500, n_features=3, noise_coef=0.1, seed=42)
+x, y = make_regression(n_samples=500, n_features=5, noise_coef=0.1, seed=42)
 x_train, x_test, y_train, y_test = random_split(x, y, test_size=0.2, seed=42)
 
 pipe = Pipeline([
-    PolynomialFeatures(degree=2),
     StandardScaler(),
-    LinearRegression(max_iter=2000, lr=1e-2, ridge_coef=0.01)
+    LinearRegression(max_iter=2000, lr=1e-2, ridge_coef=0.01),
 ])
-losses = pipe.fit(x_train, y_train)
+pipe.fit(x_train, y_train)
 y_pred = pipe(x_test)
+
 print("R²:", r_squared(y_test, y_pred))
-
-# bagging classifier
-x, y = make_classification(n_samples=1000, n_features=5, n_classes=2, seed=42)
-x_train, x_test, y_train, y_test = random_split(x, y, test_size=0.2, seed=42)
-
-clf = BaggingClassifier(model=KNNClassifier(n_neighbors=5), n_models=15, samples=0.75, seed=42)
-clf.train(x_train, y_train)
-print("Accuracy:", accuracy(y_test, clf(x_test)))
-
-# naive bayes
-gnb = GaussianNaiveBayes()
-gnb.train(x_train, y_train)
-print("GNB accuracy:", accuracy(y_test, gnb(x_test)))
-
-# k-means clustering
-kmeans = KMeans(n_clusters=3, n_inits=10, max_iter=100, seed=42)
-kmeans.train(x_train)
-print("Cluster labels:", kmeans.labels[:10])
-
-# voting over different models
-voter = VotingClassifier([LogisticRegression(lr=0.1), KNNClassifier(n_neighbors=3)])
-voter.train(x_train, y_train)
-print("Voting accuracy:", accuracy(y_test, voter(x_test)))
-
-# random forest / extra trees
-rf = RandomForestClassifier(n_models=30, max_depth=6, seed=42)
-rf.train(x_train, y_train)
-print("RF accuracy:", accuracy(y_test, rf(x_test)))
-
-et = ExtraTreesClassifier(n_models=30, max_depth=6, seed=42)
-et.train(x_train, y_train)
-print("ExtraTrees accuracy:", accuracy(y_test, et(x_test)))
-
-# grid search
-params = {'n_models': [10, 20], 'max_depth': [3, 5]}
-grid = GridSearchCV(params, RandomForestClassifier(), accuracy, folds=3)
-grid.train(x_train, y_train)
-best = grid.best_model
 ```
 
-See `tests.ipynb` for more complete examples.
+See `tests.ipynb` for more complete examples covering other models.
 
 ## Motivation
 

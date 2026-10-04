@@ -3,6 +3,14 @@ from .base import Model
 from .trees import DecisionTreeClassifier
 
 class AdaBoostClassifier(Model):
+    """
+    AdaBoost classifier using decision stumps as weak learners.
+    Samples are reweighted after each round; final prediction is a weighted vote.
+
+    :param n_models: number of weak learners (stumps)
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, seed=None):
         super().__init__(task='classification')
         self.n_models = n_models
@@ -19,6 +27,15 @@ class AdaBoostClassifier(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains AdaBoost on the given data.
+        Each round samples the data by current weights, fits a stump,
+        then updates sample weights using the stump's weighted error.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target labels of shape (n_samples,)
+        :return: None
+        """
         if x.ndim == 1:
             x = np.expand_dims(x, axis = 1)
 
@@ -60,6 +77,12 @@ class AdaBoostClassifier(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts class labels by weighted majority vote over all stumps.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: predicted class labels
+        """
         stumps_preds = []
 
         for s in self.stumps:
