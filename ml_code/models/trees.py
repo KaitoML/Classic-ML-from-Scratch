@@ -48,6 +48,7 @@ class DecisionTree(Model):
         self.root = None
         self.seed = seed
         self._rng = None
+        self.amount_of_say = None # for AdaBoost
 
     def _criterion(self, y):
         """
