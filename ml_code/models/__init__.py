@@ -1,13 +1,14 @@
 from .base import Model
 from .linear import LinearRegression, LogisticRegression
 from .neighbors import KNNClassifier
-from .trees import DecisionTreeClassifier, DecisionTreeRegressor
+from .trees import DecisionTreeClassifier, DecisionTreeRegressor, XGBoostRegressionTree
 from .bayes import GaussianNaiveBayes
 from .clustering import KMeans
 from .boosting import (
     AdaBoostClassifier,
     GradientBoostRegressor,
     GradientBoostClassifier,
+    XGBoostRegressor
 )
 from .ensembles import (
     VotingClassifier,
@@ -32,6 +33,7 @@ __all__ = [
     "AdaBoostClassifier",
     "GradientBoostRegressor",
     "GradientBoostClassifier",
+    "XGBoostRegressor",
     "VotingClassifier",
     "VotingRegressor",
     "BaggingClassifier",

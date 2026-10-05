@@ -329,3 +329,154 @@ class DecisionTreeRegressor(DecisionTree):
         :return: mean value
         """
         return np.mean(y)
+
+class XGBoostRegressionTree(Model):
+    def __init__(self, max_depth=5, lbd=0, gamma=0, seed=None):
+        super().__init__(task='regression')
+        self.max_depth = max_depth
+        self.lbd = lbd
+        self.gamma = gamma
+        self.seed = seed
+
+        self.root = None
+
+    def __repr__(self):
+        return (f'XGBoostRegressionTree('
+                f'\n    max_depth={self.max_depth},'
+                f'\n    lbd={self.lbd}'
+                f'\n    gamma={self.gamma}'
+                f'\n    trained={self.trained}'
+                f'\n    seed={self.seed}'
+                f'\n)')
+
+    def _similarity_score(self, resids):
+        return np.square(np.sum(resids)) / (len(resids) + self.lbd)
+
+    def _prediction(self, resids):
+        return np.sum(resids) / (len(resids) + self.lbd)
+
+    def _build_tree(self, x, resids, depth):
+
+        # if max depth is reached
+        if depth >= self.max_depth:
+            node = Node(
+                labels=resids,
+                prediction=self._prediction(resids)
+            )
+            node.leaf = True
+            return node
+
+        candidate_splits = {}  # {feature_idx: (gain, threshold)}
+
+        feature_indices = np.arange(x.shape[1])
+
+        for i in feature_indices:
+            feature = x[:, i]
+            unique_vals = np.unique(feature)
+
+            if len(unique_vals) < 2:
+                continue
+
+            thresholds = []
+            sorted_values = sorted(feature)
+            for val1, val2 in zip(sorted_values, sorted_values[1:]):
+                if val1 != val2:
+                    local_avg = (val1 + val2) / 2
+                    thresholds.append(local_avg)
+
+            gains = {}
+            for t in thresholds:
+                left = []
+                right = []
+
+                for sample, resid in zip(x, resids):
+                    if sample[i] < t:
+                        left.append(resid)
+                    else:
+                        right.append(resid)
+
+                if len(left) == 0 or len(right) == 0:
+                    continue
+
+                similarity_root = self._similarity_score(resids)
+                similarity_left = self._similarity_score(left)
+                similarity_right = self._similarity_score(right)
+                gain = similarity_left + similarity_right - similarity_root - self.gamma
+
+                gains[t] = gain
+
+            if not gains:
+                continue
+
+            best_threshold = max(gains, key=gains.get)
+            highest_gain = gains[best_threshold]
+
+            if highest_gain <= 0:
+                node = Node(
+                    labels=resids,
+                    prediction=self._prediction(resids)
+                )
+                node.leaf = True
+                return node
+
+            candidate_splits[i] = (highest_gain, best_threshold)
+
+        if not candidate_splits:
+            node = Node(
+                labels=resids,
+                prediction=self._prediction(resids)
+            )
+            node.leaf = True
+            return node
+
+        best_feature, (highest_gain, best_threshold) = max(candidate_splits.items(), key=lambda item: item[1][0])
+        node = Node(feature_idx=best_feature, threshold=best_threshold, labels=resids)
+
+        left_x = []
+        left_resid = []
+        right_x = []
+        right_resid = []
+        for sample, resid in zip(x, resids):
+            if sample[best_feature] < best_threshold:
+                left_x.append(sample)
+                left_resid.append(resid)
+            else:
+                right_x.append(sample)
+                right_resid.append(resid)
+
+        left_x = np.array(left_x)
+        left_resid = np.array(left_resid)
+        right_x = np.array(right_x)
+        right_resid = np.array(right_resid)
+
+        node.left = self._build_tree(left_x, left_resid, depth + 1)
+        node.right = self._build_tree(right_x, right_resid, depth + 1)
+
+        return node
+
+    def train(self, x, resids):
+        if x.ndim == 1:
+            x = np.expand_dims(x, axis=1)
+
+        self.root = self._build_tree(x, resids, depth=0)
+        self.trained = True
+
+    def _traverse(self, x_i, node):
+        if node.leaf:
+            return node.prediction
+
+        if x_i[node.feature_idx] < node.threshold:
+            return self._traverse(x_i, node.left)
+        else:
+            return self._traverse(x_i, node.right)
+
+    def __call__(self, x):
+        if not self.trained:
+            raise RuntimeError(f'{self.__class__.__name__} is not trained')
+
+        preds = []
+        for x_i in x:
+            pred = self._traverse(x_i, self.root)
+            preds.append(pred)
+
+        return np.array(preds)
