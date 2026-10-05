@@ -23,7 +23,7 @@ The project is under active development.
 │       ├── boosting.py
 │       ├── ensembles.py
 │       └── __init__.py
-├── tests.ipynb
+├── showcases/
 ├── requirements.txt
 ├── README.md
 └── LICENSE
@@ -38,6 +38,7 @@ The project is under active development.
   - `GaussianNaiveBayes` — Gaussian Naive Bayes classifier
   - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
   - `AdaBoostClassifier` — AdaBoost with decision stumps and weighted voting
+  - `GradientBoostRegressor` — gradient boosting for squared error (trees on residuals + learning rate)
   - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
   - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
   - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling
@@ -57,7 +58,7 @@ pip install -r requirements.txt
 
 Requires **Python 3.x** and **NumPy**.  
 `matplotlib` and `seaborn` are needed for the confusion-matrix plot.  
-To run `tests.ipynb` you will also need Jupyter (or any IDE with notebook support).
+To run the example notebooks you will also need Jupyter (or any IDE with notebook support).
 
 ## Usage
 
@@ -82,7 +83,7 @@ y_pred = pipe(x_test)
 print("R²:", r_squared(y_test, y_pred))
 ```
 
-See `tests.ipynb` for more complete examples covering other models.
+See `showcases/` for more complete examples covering other models.
 
 ## Motivation
 
