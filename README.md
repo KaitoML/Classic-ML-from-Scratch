@@ -39,6 +39,7 @@ The project is under active development.
   - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
   - `AdaBoostClassifier` — AdaBoost with decision stumps and weighted voting
   - `GradientBoostRegressor` — gradient boosting for squared error (trees on residuals + learning rate)
+  - `GradientBoostClassifier` — binary gradient boosting with logistic loss (log-odds space + sigmoid)
   - `VotingClassifier` / `VotingRegressor` — hard voting / averaging over multiple models
   - `BaggingClassifier` / `BaggingRegressor` — bootstrap aggregating
   - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling

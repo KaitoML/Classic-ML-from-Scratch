@@ -106,6 +106,16 @@ class AdaBoostClassifier(Model):
         return np.array(outs)
 
 class GradientBoostRegressor(Model):
+    """
+    Gradient boosting regressor for squared error loss.
+    Sequentially fits regression trees on residuals and combines them with a learning rate.
+
+    :param n_models: number of boosting stages (trees)
+    :param max_depth: maximum depth of each regression tree
+    :param lr: learning rate (shrinkage) applied to each tree's contribution
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=3, lr=0.1, seed=None):
         super().__init__(task='regression')
         self.n_models = n_models
@@ -126,6 +136,14 @@ class GradientBoostRegressor(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains the gradient boosting ensemble.
+        Starts from the mean of y, then repeatedly fits trees to the current residuals.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target values of shape (n_samples,)
+        :return: None
+        """
         self.base = np.mean(y)
         previous_pred = np.full(len(y), fill_value=self.base)
 
@@ -142,6 +160,12 @@ class GradientBoostRegressor(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Makes predictions by summing the base value and all tree contributions.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: predicted values
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
@@ -152,6 +176,17 @@ class GradientBoostRegressor(Model):
         return out
 
 class GradientBoostClassifier(Model):
+    """
+    Binary gradient boosting classifier with logistic loss.
+    Works in log-odds space: trees are regression trees fitted on probability residuals,
+    and class labels are obtained via sigmoid and a 0.5 threshold.
+
+    :param n_models: number of boosting stages (trees)
+    :param max_depth: maximum depth of each regression tree
+    :param lr: learning rate (shrinkage) applied to each tree's contribution
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=3, lr=0.1, seed=None):
         super().__init__(task='classification')
         self.n_models = n_models
@@ -173,12 +208,28 @@ class GradientBoostClassifier(Model):
 
     @staticmethod
     def _sigmoid(z):
+        """
+        Applies the sigmoid function to map log-odds to probabilities.
+
+        :param z: log-odds values
+        :return: probabilities in (0, 1)
+        """
+        z = np.clip(z, -250, 250)
         return 1 / (1 + np.exp(-z))
 
     def train(self, x, y):
+        """
+        Trains the binary gradient boosting classifier.
+        Starts from log-odds of the class prior, then fits regression trees
+        to residuals y - sigmoid(F).
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: binary target labels of shape (n_samples,)
+        :return: None
+        """
         assert len(np.unique(y)) == 2, "GradientBoostingClassifier only supports binary classification"
 
-        p = np.mean(y)
+        p = np.clip(np.mean(y), 1e-12, 1 - 1e-12)
         self.base = np.log(p/(1-p))
 
         previous_pred = np.full(len(y), fill_value=self.base)
@@ -196,6 +247,14 @@ class GradientBoostClassifier(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Predicts binary class labels.
+        Accumulates log-odds, converts them to probabilities with sigmoid,
+        and thresholds at 0.5.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: predicted class labels (0 or 1)
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
