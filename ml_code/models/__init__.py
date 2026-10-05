@@ -4,7 +4,7 @@ from .neighbors import KNNClassifier
 from .trees import DecisionTreeClassifier, DecisionTreeRegressor
 from .bayes import GaussianNaiveBayes
 from .clustering import KMeans
-from .boosting import AdaBoostClassifier
+from .boosting import AdaBoostClassifier, GradientBoostRegressor
 from .ensembles import (
     VotingClassifier,
     VotingRegressor,
@@ -26,6 +26,7 @@ __all__ = [
     "GaussianNaiveBayes",
     "KMeans",
     "AdaBoostClassifier",
+    "GradientBoostRegressor",
     "VotingClassifier",
     "VotingRegressor",
     "BaggingClassifier",

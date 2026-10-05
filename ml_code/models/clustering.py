@@ -198,17 +198,3 @@ class KMeans(Model):
             labels.append(np.argmin(dists))
 
         return np.array(labels)
-
-
-if __name__ == '__main__':
-    # TODO:
-    #   Add KMeans tests to tests.ipynb
-    x = np.array([[1, 5],
-                  [1.3, 5.4],
-                  [1.1, 6],
-                  [3, 2],
-                  [4, 3]])
-
-    kmeans = KMeans(n_clusters=2, n_inits=10, max_iter=10)
-    kmeans.train(x)
-    print(kmeans.labels)
