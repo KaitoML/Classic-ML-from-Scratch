@@ -106,6 +106,16 @@ class AdaBoostClassifier(Model):
         return np.array(outs)
 
 class GradientBoostRegressor(Model):
+    """
+    Gradient boosting regressor for squared error loss.
+    Sequentially fits regression trees on pseudo-residuals and combines them with a learning rate.
+
+    :param n_models: number of boosting stages (trees)
+    :param max_depth: maximum depth of each regression tree
+    :param lr: learning rate (shrinkage) applied to each tree's contribution
+    :param seed: random seed for reproducibility
+    """
+
     def __init__(self, n_models=50, max_depth=3, lr=0.1, seed=None):
         super().__init__(task='regression')
         self.n_models = n_models
@@ -125,6 +135,14 @@ class GradientBoostRegressor(Model):
                 f'\n)')
 
     def train(self, x, y):
+        """
+        Trains the gradient boosting ensemble.
+        Starts from the mean of y, then repeatedly fits trees to the current residuals.
+
+        :param x: input features of shape (n_samples, n_features)
+        :param y: target values of shape (n_samples,)
+        :return: None
+        """
         self.base = np.mean(y)
         previous_pred = np.full(len(y), fill_value=self.base)
 
@@ -141,6 +159,12 @@ class GradientBoostRegressor(Model):
         self.trained = True
 
     def __call__(self, x):
+        """
+        Makes predictions by summing the base value and all tree contributions.
+
+        :param x: input features of shape (n_samples, n_features)
+        :return: predicted values
+        """
         if not self.trained:
             raise RuntimeError(f'{self.__class__.__name__} is not trained')
 
