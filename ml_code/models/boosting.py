@@ -1,6 +1,6 @@
 import numpy as np
 from .base import Model
-from .trees import DecisionTreeClassifier
+from .trees import DecisionTreeClassifier, DecisionTreeRegressor
 
 class AdaBoostClassifier(Model):
     """
@@ -83,6 +83,9 @@ class AdaBoostClassifier(Model):
         :param x: input features of shape (n_samples, n_features)
         :return: predicted class labels
         """
+        if not self.trained:
+            raise RuntimeError(f'{self.__class__.__name__} is not trained')
+
         stumps_preds = []
 
         for s in self.stumps:
@@ -101,3 +104,48 @@ class AdaBoostClassifier(Model):
             outs.append(max(weighted_voting, key=weighted_voting.get))
 
         return np.array(outs)
+
+class GradientBoostRegressor(Model):
+    def __init__(self, n_models=50, max_depth=3, lr=0.1, seed=None):
+        super().__init__(task='regression')
+        self.n_models = n_models
+        self.max_depth = max_depth
+        self.lr = lr
+        self.seed = seed
+
+        self.trees = []
+
+    def __repr__(self):
+        return (f'GradientBoostRegressor('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    lr={self.lr},'
+                f'\n    seed={self.seed},'
+                f'\n    trained={self.trained}'
+                f'\n)')
+
+    def train(self, x, y):
+        self.base = np.mean(y)
+        previous_pred = np.full(len(y), fill_value=self.base)
+
+        for _ in range(self.n_models):
+
+            resid = y - previous_pred
+
+            tree = DecisionTreeRegressor(max_depth=self.max_depth, seed=self.seed)
+            tree.train(x, resid)
+            self.trees.append(tree)
+
+            previous_pred += self.lr * tree(x)
+
+        self.trained = True
+
+    def __call__(self, x):
+        if not self.trained:
+            raise RuntimeError(f'{self.__class__.__name__} is not trained')
+
+        out = self.base
+        for t in self.trees:
+            out += self.lr * t(x)
+
+        return out
