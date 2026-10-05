@@ -113,6 +113,7 @@ class GradientBoostRegressor(Model):
         self.lr = lr
         self.seed = seed
 
+        self.base = None
         self.trees = []
 
     def __repr__(self):
@@ -149,3 +150,58 @@ class GradientBoostRegressor(Model):
             out += self.lr * t(x)
 
         return out
+
+class GradientBoostClassifier(Model):
+    def __init__(self, n_models=50, max_depth=3, lr=0.1, seed=None):
+        super().__init__(task='classification')
+        self.n_models = n_models
+        self.max_depth = max_depth
+        self.lr = lr
+        self.seed = seed
+
+        self.base = None
+        self.trees = []
+
+    def __repr__(self):
+        return (f'GradientBoostClassifier('
+                f'\n    n_models={self.n_models},'
+                f'\n    max_depth={self.max_depth},'
+                f'\n    lr={self.lr},'
+                f'\n    seed={self.seed},'
+                f'\n    trained={self.trained}'
+                f'\n)')
+
+    @staticmethod
+    def _sigmoid(z):
+        return 1 / (1 + np.exp(-z))
+
+    def train(self, x, y):
+        assert len(np.unique(y)) == 2, "GradientBoostingClassifier only supports binary classification"
+
+        p = np.mean(y)
+        self.base = np.log(p/(1-p))
+
+        previous_pred = np.full(len(y), fill_value=self.base)
+
+        for _ in range(self.n_models):
+            prob = self._sigmoid(previous_pred)
+            resid = y - prob
+
+            tree = DecisionTreeRegressor(max_depth=self.max_depth, seed=self.seed) # regression tree because we need to predict continuous values (resids), not classes
+            tree.train(x, resid)
+            self.trees.append(tree)
+
+            previous_pred += self.lr * tree(x)
+
+        self.trained = True
+
+    def __call__(self, x):
+        if not self.trained:
+            raise RuntimeError(f'{self.__class__.__name__} is not trained')
+
+        out = self.base
+        for t in self.trees:
+            out += self.lr * t(x)
+
+        out = self._sigmoid(out)
+        return (out >= 0.5).astype(int)
