@@ -1,6 +1,6 @@
 # Classic ML from Scratch
 
-An educational machine learning framework implemented from scratch in pure NumPy. The goal is to understand how classical ML algorithms work internally by building them without relying on high-level libraries such as scikit-learn.
+An educational machine learning framework implemented from scratch in pure NumPy. The goal is to understand how classical ML algorithms work internally by building them without relying on high-level libraries.
 
 The project is under active development.
 
@@ -53,6 +53,7 @@ The project is under active development.
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
 - **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
 - **Synthetic Datasets** (`ml_code/synthetic_data.py`) — `make_regression`, `make_classification`
+- **Model persistence** — `save()` and `load()` methods available on all models (`.pkl` format)
 
 ## Installation
 
@@ -85,6 +86,12 @@ pipe.fit(x_train, y_train)
 y_pred = pipe(x_test)
 
 print("R²:", r_squared(y_test, y_pred))
+
+# Save and load trained models
+pipe_model = pipe.components[-1]
+pipe_model.save("models/linear_regression.pkl")
+
+loaded_model = LinearRegression.load("models/linear_regression.pkl")
 ```
 
 See `showcases/` for more complete examples covering other models.
