@@ -47,7 +47,7 @@ The project is under active development.
   - `RandomForestClassifier` / `RandomForestRegressor` — bagging of decision trees with feature subsampling
   - `ExtraTreesClassifier` / `ExtraTreesRegressor` — extremely randomized trees
   - `KMeans` — K-Means clustering with multiple initializations and inertia-based selection
-- **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `PolynomialFeatures`
+- **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `SimpleImputer`,`PolynomialFeatures`
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
 - **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
