@@ -1,6 +1,6 @@
 from .base import Model
 from .linear import LinearRegression, LogisticRegression
-from .neighbors import KNNClassifier
+from .neighbors import KNNClassifier, KNNRegressor
 from .trees import DecisionTreeClassifier, DecisionTreeRegressor, XGBoostRegressionTree
 from .bayes import GaussianNaiveBayes
 from .clustering import KMeans
@@ -26,6 +26,7 @@ __all__ = [
     "LinearRegression",
     "LogisticRegression",
     "KNNClassifier",
+    "KNNRegressor",
     "DecisionTreeClassifier",
     "DecisionTreeRegressor",
     "GaussianNaiveBayes",

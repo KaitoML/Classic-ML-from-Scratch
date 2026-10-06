@@ -2,25 +2,23 @@ import numpy as np
 from collections import Counter
 from .base import Model
 
-class KNNClassifier(Model):
+class KNN(Model):
     """
-    K-Nearest Neighbors classifier using Euclidean distance.
-    Supports multiclass classification.
+    Base K-Nearest Neighbors model class.
 
     :param n_neighbors: number of nearest neighbors to use for prediction
+    :param task: 'regression' or 'classification'
     """
-
-    def __init__(self, n_neighbors=5):
-        super().__init__(task='classification')
+    def __init__(self, n_neighbors=5, task=None):
+        super().__init__(task=task)
         self.n_neighbors = n_neighbors
+        self.task = task
+
         self._data = None
         self._labels = None
 
     def __repr__(self):
-        return (f"KNNClassifier("
-                f"\n    n_neighbors={self.n_neighbors},"
-                f"\n    trained={self.trained}"
-                f"\n)")
+        raise NotImplementedError(f'__repr__ method of {self.__class__.__name__} is not defined')
 
     @staticmethod
     def _euclidean_distance(coords1, coords2):
@@ -41,7 +39,8 @@ class KNNClassifier(Model):
         :param y: target labels of shape (n_samples,)
         :return: None
         """
-        assert self.n_neighbors <= len(x), 'n_neighbors > the number of samples'
+        if self.n_neighbors > len(x):
+            raise ValueError('n_neighbors > the number of samples')
 
         self._data = x
         self._labels = y
@@ -70,11 +69,53 @@ class KNNClassifier(Model):
             # take n_closest datapoints with their labels
             n_closest = label_dist[:self.n_neighbors]
 
-            # count how many datapoints of each label occurred
-            label_counter = Counter(int(label) for _, label in n_closest)
+            if self.task == 'classification':
 
-            most_freq_label = max(label_counter, key=label_counter.get)
-            y_pred.append(most_freq_label)
+                # count how many datapoints of each label occurred
+                label_counter = Counter(int(label) for _, label in n_closest)
+
+                # find the most common label
+                pred = max(label_counter, key=label_counter.get)
+
+            else:
+                # calculate mean of the closest datapoints' labels
+                pred = np.mean([item[1] for item in n_closest])
+
+            y_pred.append(pred)
 
         y_pred = np.array(y_pred)
         return y_pred
+
+class KNNClassifier(KNN):
+    """
+    K-Nearest Neighbors classifier.
+    Supports multiclass classification.
+
+    :param n_neighbors: number of nearest neighbors to use for prediction
+    """
+    def __init__(self, n_neighbors=5):
+        super().__init__(task='classification',
+                         n_neighbors=n_neighbors)
+
+    def __repr__(self):
+        return (f"KNNClassifier("
+                f"\n    n_neighbors={self.n_neighbors},"
+                f"\n    trained={self.trained}"
+                f"\n)")
+
+
+class KNNRegressor(KNN):
+    """
+    K-Nearest Neighbors regressor.
+
+    :param n_neighbors: number of nearest neighbors to use for prediction
+    """
+    def __init__(self, n_neighbors=5):
+        super().__init__(task='regression',
+                         n_neighbors=n_neighbors)
+
+    def __repr__(self):
+        return (f"KNNRegressor("
+                f"\n    n_neighbors={self.n_neighbors},"
+                f"\n    trained={self.trained}"
+                f"\n)")
