@@ -12,7 +12,7 @@ The project is under active development.
 │   ├── model_selection.py
 │   ├── pipeline.py
 │   ├── preprocessors.py
-│   ├── utils.py
+│   ├── synthetic_data.py
 │   └── models/
 │       ├── base.py
 │       ├── linear.py
@@ -52,7 +52,7 @@ The project is under active development.
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
 - **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
-- **Utils** (`ml_code/utils.py`) — `make_regression`, `make_classification`
+- **Synthetic Datasets** (`ml_code/synthetic_data.py`) — `make_regression`, `make_classification`
 
 ## Installation
 
@@ -72,7 +72,7 @@ from ml_code.preprocessors import StandardScaler
 from ml_code.pipeline import Pipeline
 from ml_code.model_selection import random_split
 from ml_code.metrics import r_squared
-from ml_code.utils import make_regression
+from ml_code.synthetic_data import make_regression
 
 x, y = make_regression(n_samples=500, n_features=5, noise_coef=0.1, seed=42)
 x_train, x_test, y_train, y_test = random_split(x, y, test_size=0.2, seed=42)

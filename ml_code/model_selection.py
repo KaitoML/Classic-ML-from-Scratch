@@ -133,27 +133,3 @@ class GridSearchCV:
             self.best_model = max(model_to_score, key=lambda x: x[1])[0]
         else:
             self.best_model = min(model_to_score, key=lambda x: x[1])[0]
-
-
-if __name__ == '__main__':
-    from utils import make_regression
-    from models import RandomForestRegressor
-    from metrics import r_squared
-
-    x, y = make_regression(n_samples=300, n_features=3, noise_coef=1)
-    x_tr, x_te, y_tr, y_te = random_split(x, y)
-
-    params = {
-        'n_models': [10, 15, 20],
-        'max_depth': [2, 5, 7]
-    }
-    m = RandomForestRegressor()
-
-    grid = GridSearchCV(params, m, r_squared)
-    grid.train(x_tr, y_tr)
-    m = grid.best_model
-    print(m)
-
-    m.train(x_tr, y_tr)
-    y_pred = m(x_te)
-    print(r_squared(y_te, y_pred))
