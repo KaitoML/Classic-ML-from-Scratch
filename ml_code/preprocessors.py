@@ -63,6 +63,7 @@ class StandardScaler(Preprocessor):
         :param data: input data of shape (n_samples, n_features)
         :return: standardized data
         """
+        data = data.copy()
         return (data - self.mu) / (self.sigma + 1e-12)
 
 class MinMaxScaler(Preprocessor):
@@ -91,7 +92,46 @@ class MinMaxScaler(Preprocessor):
         :param data: input data of shape (n_samples, n_features)
         :return: scaled data
         """
+        data = data.copy()
         return (data - self.min) / (self.max - self.min + 1e-12)
+
+class SimpleImputer(Preprocessor):
+    def __init__(self, strategy='mean'):
+        if strategy not in ('mean', 'median', 'zeros'):
+            raise ValueError('unknown imputer strategy; available: ("mean", "median", "zeros"). ')
+
+        self.strategy = strategy
+        self.fill_vals = None
+
+
+    def fit(self, data):
+        if data.ndim == 1:
+            data = np.expand_dims(data, axis=1)
+
+        fill_vals = []
+        for col in data.T:
+            if self.strategy == 'mean':
+                fill_val = np.nanmean(col)
+            elif self.strategy == 'median':
+                fill_val = np.nanmedian(col)
+            else:
+                fill_val = 0
+
+            fill_vals.append(fill_val)
+
+        self.fill_vals = fill_vals
+
+    def transform(self, data):
+        data = data.copy()
+
+        if data.ndim == 1:
+            data = np.expand_dims(data, axis=1)
+
+        for i, val in enumerate(self.fill_vals):
+            col = data[:, i]
+            col[np.isnan(col)] = val
+
+        return data
 
 class PolynomialFeatures(Preprocessor):
     """
@@ -124,6 +164,8 @@ class PolynomialFeatures(Preprocessor):
         :param data: input data of shape (n_samples, n_features)
         :return: data with polynomial features appended
         """
+        data = data.copy()
+
         if data.ndim == 1:
             data = np.expand_dims(data, axis=1)
 
