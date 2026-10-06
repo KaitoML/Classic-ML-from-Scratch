@@ -34,7 +34,8 @@ The project is under active development.
 - **Models** (`ml_code/models/`)
   - `LinearRegression` — gradient descent with L1/Lasso and L2/Ridge regularization, early stopping
   - `LogisticRegression` — binary classification (sigmoid + binary cross-entropy)
-  - `KNNClassifier` — multiclass-capable k-nearest neighbors (Euclidean distance)
+  - `KNNClassifier` — multiclass-capable k-nearest neighbors
+  - `KNNRegressor` — k-nearest neighbors model for regression
   - `GaussianNaiveBayes` — Gaussian Naive Bayes classifier
   - `DecisionTreeClassifier` / `DecisionTreeRegressor` — CART-style trees (Gini / MSE), support for `max_features` and random thresholds (ExtraTrees-style)
   - `XGBoostRegressionTree` — tree with similarity-based splits and regularized leaf values (used by XGBoost)
