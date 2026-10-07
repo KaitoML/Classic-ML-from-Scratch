@@ -51,7 +51,7 @@ The project is under active development.
 - **Preprocessors** (`ml_code/preprocessors.py`) — `StandardScaler`, `MinMaxScaler`, `SimpleImputer`,`PolynomialFeatures`
 - **Pipeline** (`ml_code/pipeline.py`) — chain preprocessors and an optional final model
 - **Model selection** (`ml_code/model_selection.py`) — `random_split`, `cv_score` (k-fold cross-validation), `GridSearchCV`
-- **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`
+- **Metrics** (`ml_code/metrics.py`) — `mse`, `rmse`, `r_squared`, `accuracy`, `precision`, `recall`, `f1`, `show_confusion_matrix`, `residuals_plot`
 - **Synthetic Datasets** (`ml_code/synthetic_data.py`) — `make_regression`, `make_classification`
 - **Model persistence** — `save()` and `load()` methods available on all models (`.pkl` format)
 
@@ -72,7 +72,7 @@ from ml_code.models import LinearRegression
 from ml_code.preprocessors import StandardScaler
 from ml_code.pipeline import Pipeline
 from ml_code.model_selection import random_split
-from ml_code.metrics import r_squared
+from ml_code.metrics import r_squared, residuals_plot
 from ml_code.synthetic_data import make_regression
 
 x, y = make_regression(n_samples=500, n_features=5, noise_coef=0.1, seed=42)
@@ -85,7 +85,10 @@ pipe = Pipeline([
 pipe.fit(x_train, y_train)
 y_pred = pipe(x_test)
 
-print("R²:", r_squared(y_test, y_pred))
+print("R-squared:", r_squared(y_test, y_pred))
+
+# Display residuals plot:
+residuals_plot(y_test, y_pred)
 
 # Save and load trained models
 pipe_model = pipe.components[-1]
