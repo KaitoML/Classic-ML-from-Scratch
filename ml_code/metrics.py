@@ -137,3 +137,19 @@ def show_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> None:
     plt.xlabel('Predicted labels')
     plt.ylabel('True labels')
     plt.show()
+
+def residuals_plot(y_true: np.ndarray, y_pred: np.ndarray) -> None:
+    """
+    Displays residuals plot
+
+    :param y_true: true labels
+    :param y_pred: predicted labels
+    :return: None
+    """
+    resids = y_true - y_pred
+    plt.scatter(y_true, resids, alpha=0.75)
+    plt.axhline(0, ls='--', c='k')
+    plt.title('Residuals plot')
+    plt.xlabel('True values')
+    plt.ylabel('Residuals')
+    plt.show()
